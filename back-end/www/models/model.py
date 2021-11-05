@@ -62,22 +62,17 @@ class Location(db.Model):
     url : string
         URL stores the location on the map.
 
-    zoom_in : integer
-        zoom-in scales
-
-    boundbox_left_up_lat
-    boundbox_left_up_lon
-    boundbox_right_down_lat
-    boundbox_right_down_lon:
+    bbox_left_up_lat
+    bbox_left_up_lng
+    bbox_right_down_lat
+    bbox_right_down_lng:
         The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
-
-    create_at : datetime
-        The creation datetime imported from disfactory factory table.
 
     done_at : datetime
         The time when the location is marked done.
 
     """
+
     # Basic information
     id = db.Column(db.Integer, primary_key=True)
     factory_id = db.Column(db.String(255), nullable=False)
@@ -85,19 +80,18 @@ class Location(db.Model):
     url = db.Column(db.String, nullable=True)
 
     # Display information
-    zoom_in = db.Column(db.Integer, default=0)
-    boundbox_left_up_lat = db.Column(db.Float, default = 0)
-    boundbox_left_up_lon = db.Column(db.Float, default = 0)
-    boundbox_right_down_lat = db.Column(db.Float, default = 0)
-    boundbox_right_down_lon = db.Column(db.Float, default = 0)
+    bbox_left_up_lat = db.Column(db.Float, default = 0)
+    bbox_left_up_lng = db.Column(db.Float, default = 0)
+    bbox_right_down_lat = db.Column(db.Float, default = 0)
+    bbox_right_down_lng = db.Column(db.Float, default = 0)
     
     # Others
     done_at = db.Column(db.DateTime)
 
     def __repr__(self):
-        return "<id=%r factory_id=%r year=%r url=%r zoom_in=%r boundbox_left_up_lat=%r boundbox_left_up_lon=%r boundbox_right_down_lat=%r boundbox_right_down_lon=%r create_at=%r done_at=%r" %(
-                self.id, self.factory_id, self.year, self.url, self.zoom_in, 
-                self.boundbox_left_up_lat, self.boundbox_left_up_lon, self.boundbox_right_down_lat, self.boundbox_right_down_lon, 
+        return "<id=%r factory_id=%r year=%r url=%r bbox_left_up_lat=%r bbox_left_up_lng=%r bbox_right_down_lat=%r bbox_right_down_lng=%r done_at=%r" %(
+                self.id, self.factory_id, self.year, self.url, 
+                self.bbox_left_up_lat, self.bbox_left_up_lng, self.bbox_right_down_lat, self.bbox_right_down_lng, 
                 self.done_at)
 
 
