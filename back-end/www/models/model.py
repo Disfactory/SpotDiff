@@ -52,31 +52,22 @@ class Location(db.Model):
     ----------
     id : int
         Unique identifier as primary key.
-
     factory_id : str
         The uuid imported from disfactory factory table.
-    
-    year: integer
+    year: int
         year Marks which year the satellite photo was taken from our geo sources. 
-
-    url : string
-        URL stores the location on the map.
-
-    bbox_left_up_lat
-    bbox_left_up_lng
-    bbox_right_down_lat
-    bbox_right_down_lng:
+    url : str
+        URL to store the location on the map.
+    bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng : float
         The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
-
     done_at : datetime
         The time when the location is marked done.
-
     """
 
     # Basic information
     id = db.Column(db.Integer, primary_key=True)
     factory_id = db.Column(db.String(255), nullable=False)
-    year = db.Column(db.Integer, default = 0)
+    year = db.Column(db.Integer, nullable=False)
     url = db.Column(db.String, nullable=True)
 
     # Display information

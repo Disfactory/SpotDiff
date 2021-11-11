@@ -3,26 +3,32 @@
 from models.model import db
 from models.model import Location
 
-def create_location(factory_id, photo_year=1997, photo_url=""):
+def create_location(factory_id, photo_year, photo_url=""):
     """
     Create a location.
 
     Parameters
     ----------
     factory_id : str
-        ID(uuid) provided by importing from the factory table
-    
-    photo_year : integer
+        ID (uuid) provided by importing from the factory table
+    photo_year : int
         The year the photo was taken
-
-    photo_url : string
+    photo_url : str
         The url to fetch the photo    
 
     Returns
     -------
     location : Location
         The newly created location.  
+
+    Raises
+    ------
+    exception : Exception
+        When photo year is not an integer        
     """
+    
+    if(not isinstance(photo_year, int)):
+        raise Exception("The photo year shall be an integer")
     
     location = Location(factory_id=factory_id, year=photo_year, url=photo_url)
 
@@ -39,7 +45,7 @@ def get_location_by_id(location_id):
 
     Parameters
     ----------
-    location_id : Int
+    location_id : int
         ID of the location.
 
     Returns
@@ -47,6 +53,7 @@ def get_location_by_id(location_id):
     location : Location
         The retrieved location object.
     """
+
     location = Location.query.filter_by(id=location_id).first()
 
     return location
@@ -57,7 +64,7 @@ def get_location_by_factory_id(factory_id):
 
     Parameters
     ----------
-    factory_id : Int
+    factory_id : int
         ID of the factory.
 
     Returns
@@ -73,18 +80,16 @@ def get_location_by_factory_id(factory_id):
 def update_location_basic_by_id(location_id, factory_id="", photo_year=0, photo_url=""):
     """
     Update location basic information by location id.
+
     Parameters
     ----------
     location_id : int
         ID of the location.
-
-    factory_id : string
+    factory_id : str
         factory_id from disfactory/factory table. Leave it "" if not updating.
-
-    photo_year : integer
+    photo_year : int
         The year which the photo was taken. Leave it 0 if not updating.
-
-    photo_url : string
+    photo_url : str
         The url which greps the photo. Leave it "" if ont updating.                
 
     Returns
@@ -96,7 +101,6 @@ def update_location_basic_by_id(location_id, factory_id="", photo_year=0, photo_
     ------
     exception : Exception
         When no location is found.
-
     """
     location = Location.query.filter_by(id=location_id).first()
 
@@ -119,14 +123,12 @@ def update_location_basic_by_id(location_id, factory_id="", photo_year=0, photo_
 def update_location_bbox_by_id(location_id, bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng):
     """
     Update location bouding box information by location id.
+
     Parameters
     ----------
     location_id : int
         ID of the location.
-    bbox_left_up_lat
-    bbox_left_up_lng
-    bbox_right_down_lat
-    bbox_right_down_lng: float
+    bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng: float
         The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
 
     Returns
@@ -138,7 +140,6 @@ def update_location_bbox_by_id(location_id, bbox_left_up_lat, bbox_left_up_lng, 
     ------
     exception : Exception
         When no location is found.
-
     """
     location = Location.query.filter_by(id=location_id).first()
 

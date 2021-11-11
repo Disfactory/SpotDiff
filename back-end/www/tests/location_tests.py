@@ -15,7 +15,9 @@ class LocationTest(BasicTest):
           Create a location and check if returns a location, and its factory_id as expected. Pass if both.
         """
         FACTORY_ID = "AAAA"
-        location = location_operations.create_location(FACTORY_ID)
+        DEF_YEAR = 2000
+
+        location = location_operations.create_location(FACTORY_ID, DEF_YEAR)
         #print("create location : " + location.factory_id)
         assert location in db.session
         assert location.factory_id == FACTORY_ID
@@ -26,7 +28,9 @@ class LocationTest(BasicTest):
           Check if the location first existed in db, then removed successfully. Pass if both.
         """
         FACTORY_ID = "EEEE"
-        location = location_operations.create_location(FACTORY_ID)
+        DEF_YEAR = 2000
+
+        location = location_operations.create_location(FACTORY_ID, DEF_YEAR)
         assert location in db.session
         location_id = location.id
         location_operations.remove_location(location_id)
@@ -38,7 +42,9 @@ class LocationTest(BasicTest):
           2. Check if it can be retrieved by the previously returned id. Pass if id is the same.
         """
         FACTORY_ID = "BBBB"
-        location = location_operations.create_location(FACTORY_ID)
+        DEF_YEAR = 2000
+
+        location = location_operations.create_location(FACTORY_ID, DEF_YEAR)
         location_id = location.id
         retrieved_location = location_operations.get_location_by_id(location_id)
         assert retrieved_location.id == location_id
@@ -49,7 +55,9 @@ class LocationTest(BasicTest):
           2. Get the location with the factory_id. Pass if it exists and the factory_id matches.
         """
         FACTORY_ID = "CCCC"
-        location = location_operations.create_location(FACTORY_ID)
+        DEF_YEAR = 2000
+
+        location = location_operations.create_location(FACTORY_ID, DEF_YEAR)
         retrieved_location = location_operations.get_location_by_factory_id(FACTORY_ID)
         assert retrieved_location != None
         assert retrieved_location.id == location.id
@@ -61,10 +69,11 @@ class LocationTest(BasicTest):
         """        
         FACTORY_ID = "DDDD"
         NEW_FACTORY_ID = "XXXX"
+        DEF_YEAR = 2000
         YEAR = 1234
         URL = "www.xxx.org"
 
-        location = location_operations.create_location(FACTORY_ID)
+        location = location_operations.create_location(FACTORY_ID, DEF_YEAR)
         retrieved_location = location_operations.get_location_by_factory_id(FACTORY_ID)
         assert retrieved_location.id == location.id
         
@@ -80,12 +89,13 @@ class LocationTest(BasicTest):
         2. Change its bounding box position. Pass if all coordinates match.
         """        
         FACTORY_ID = "DDDD"
+        DEF_YEAR = 2000
         BBOX_LEFT_UP_LAT = 0.1
         BBOX_LEFT_UP_LNG = 0.2
         BBOX_RIGHT_DOWN_LAT = 0.3
         BBOX_RIGHT_DOWN_LNG = 0.4
 
-        location = location_operations.create_location(FACTORY_ID)
+        location = location_operations.create_location(FACTORY_ID, DEF_YEAR)
         retrieved_location = location_operations.get_location_by_factory_id(FACTORY_ID)
         assert retrieved_location.id == location.id
         
