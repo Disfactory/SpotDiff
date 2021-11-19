@@ -1,9 +1,24 @@
 """Functions to operate the location table."""
 
+import datetime
+import random
+
+from sqlalchemy.sql.expression import null, true
+from sqlalchemy import func
 from models.model import db
 from models.model import Location
+from models.model import Answer
 
-def create_location(factory_id, photo_year, photo_url=""):
+DEBUG = False
+def dbprint(*values: object):
+    """
+    print for debugging purpose. Enabled by DEBUG flag.
+    """
+    if DEBUG:
+        print(values)
+
+
+def create_location(factory_id):
     """
     Create a location.
 
@@ -11,10 +26,6 @@ def create_location(factory_id, photo_year, photo_url=""):
     ----------
     factory_id : str
         ID (uuid) provided by importing from the factory table
-    photo_year : int
-        The year the photo was taken
-    photo_url : str
-        The url to fetch the photo    
 
     Returns
     -------
@@ -26,17 +37,12 @@ def create_location(factory_id, photo_year, photo_url=""):
     exception : Exception
         When photo year is not an integer        
     """
-    
-    if(not isinstance(photo_year, int)):
-        raise Exception("The photo year shall be an integer")
-    
-    location = Location(factory_id=factory_id, year=photo_year, url=photo_url)
+    location = Location(factory_id=factory_id)
 
     db.session.add(location)
     db.session.commit()
 
     return location
-
 
 
 def get_location_by_id(location_id):
@@ -53,10 +59,9 @@ def get_location_by_id(location_id):
     location : Location
         The retrieved location object.
     """
-
     location = Location.query.filter_by(id=location_id).first()
-
     return location
+
 
 def get_location_by_factory_id(factory_id):
     """
@@ -73,24 +78,19 @@ def get_location_by_factory_id(factory_id):
         The retrieved location object.
     """
     location = Location.query.filter_by(factory_id=factory_id).first()
-
     return location
 
 
-def update_location_basic_by_id(location_id, factory_id="", photo_year=0, photo_url=""):
+def set_location_done(location_id, is_done):
     """
-    Update location basic information by location id.
+    Set the current time to done_at to mark it's done.
 
     Parameters
     ----------
     location_id : int
         ID of the location.
-    factory_id : str
-        factory_id from disfactory/factory table. Leave it "" if not updating.
-    photo_year : int
-        The year which the photo was taken. Leave it 0 if not updating.
-    photo_url : str
-        The url which greps the photo. Leave it "" if ont updating.                
+    is_done : bool
+        Set done or not done.   
 
     Returns
     -------
@@ -100,60 +100,25 @@ def update_location_basic_by_id(location_id, factory_id="", photo_year=0, photo_
     Raises
     ------
     exception : Exception
-        When no location is found.
+        -is_done is not bool
+        -When no location is found.
     """
+    if(not isinstance(is_done, bool)):
+        raise Exception("is_done shall be bool")
+
     location = Location.query.filter_by(id=location_id).first()
 
     if location is None:
         raise Exception("No location found in the database to update.")
-
-    if factory_id != "":
-        location.factory_id = factory_id
-
-    if photo_year > 0:
-        location.year = photo_year
-
-    if photo_url != "":
-        location.url = photo_url
+    
+    if(is_done):
+       location.done_at = datetime.datetime.now()
+    else:
+       location.done_at = None
 
     db.session.commit()
-
     return location
 
-def update_location_bbox_by_id(location_id, bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng):
-    """
-    Update location bouding box information by location id.
-
-    Parameters
-    ----------
-    location_id : int
-        ID of the location.
-    bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng: float
-        The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
-
-    Returns
-    -------
-    location : Location
-        The retrieved location object.
-
-    Raises
-    ------
-    exception : Exception
-        When no location is found.
-    """
-    location = Location.query.filter_by(id=location_id).first()
-
-    if location is None:
-        raise Exception("No location found in the database to update.")
-
-    location.bbox_left_up_lat = bbox_left_up_lat
-    location.bbox_left_up_lng = bbox_left_up_lng
-    location.bbox_right_down_lat = bbox_right_down_lat
-    location.bbox_right_down_lng = bbox_right_down_lng
-
-    db.session.commit()
-
-    return location
 
 def remove_location(location_id):
     """
@@ -178,17 +143,80 @@ def remove_location(location_id):
     db.session.commit()
 
 
-def get_all_locations():
+def get_locations(size, gold_standard_size):
     """
-    Get all locations.
+    Get specified number of locations, 
+
+    Parameters
+    ----------
+    size : int
+        Total number of locations to be returned.
+    gold_standard_size : int
+        Within size, the number of locations which includes gold standard answers        
 
     Returns
     -------
     locations : list of Locations
         The list of retrieved location objects.
-    """
-    locations = Location.query.all()
 
-    return locations
+    Raises
+    ------
+    exception : Exception when either
+        - size and gold_standard are not integers, or < 0
+        - gold standard size exceeds size
+        - Cannot find #gold_standard_size of locations which have gold standards
+        - Cannot find #size of locations
+    """
+    if(not isinstance(gold_standard_size, int)):
+        raise Exception("The gold_standard_size shall be an integer")
+    if(not isinstance(size, int)):
+        raise Exception("The gold_standard_size shall be an integer")
+    if(size < 0):
+        raise Exception("The size must be greater or equal to 0.")
+    if(gold_standard_size < 0):
+        raise Exception("The gold_standard_size must be greater or equal to 0.")
+    if gold_standard_size > size:
+        raise Exception("The gold standard size cannot exceed size.")
+
+    if(size==0):
+        return None
+
+    # get locations which has gold answers
+    gold_answers_filter = Answer.query.filter(Answer.is_gold_standard==True)
+    gold_location_list = [l.location_id for l in gold_answers_filter.distinct(Answer.location_id).all()]
+
+    if(len(gold_location_list) < gold_standard_size):
+        raise Exception("Cannot find expected amount of locations which have gold standards :", gold_standard_size)
+
+    gold_location_filter = Location.query.filter(Location.id.in_(gold_location_list))
+
+    # get locations which has no gold answers
+    non_gold_locations_filter = Location.query.filter(Location.id.not_in(gold_location_list))
+
+    sel_gold_location_list = None
+    sel_non_gold_location_list = None
+
+    # randomly sort and select the first locations which has been provideded gold answers
+    if gold_standard_size > 0:
+        rand_gold_location_list = gold_location_filter.order_by(func.random()).all()
+        dbprint("Got {} gold rand_gold_location_list.".format(len(rand_gold_location_list)))
+
+        sel_gold_location_list = rand_gold_location_list[0:gold_standard_size]
+        dbprint("sel_gold_location_list : ", sel_gold_location_list)
+
+    # randomly sort and select the first locations which doesn't have gold answers
+    if size > gold_standard_size:
+        rand_none_gold_location_list = non_gold_locations_filter.order_by(func.random()).all()
+        sel_non_gold_location_list = rand_none_gold_location_list[0:(size - gold_standard_size)]
+        dbprint("sel_non_gold_location_list : ", sel_non_gold_location_list)
+
+    location_list = sel_gold_location_list + sel_non_gold_location_list
+
+    if(len(location_list) < size):
+        raise Exception("Cannot find expected amount of locations", size)
+
+    random.shuffle(location_list)
+
+    return location_list
 
 
