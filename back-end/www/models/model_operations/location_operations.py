@@ -220,3 +220,16 @@ def get_locations(size, gold_standard_size):
     return location_list
 
 
+def get_location_is_done_count():
+    """
+    Get the count of locations which have been labled done
+
+    Returns
+    -------
+    count : the amount of locations which have been labled done
+    """
+    # Create an exclusive filter to get locations which have done_at date
+    location_query = Location.query.filter(Location.done_at.isnot(None))
+    count = location_query.count()
+    return count
+
