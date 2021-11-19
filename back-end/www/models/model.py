@@ -42,7 +42,7 @@ class User(db.Model):
     client_type = db.Column(db.Integer, nullable=False, default=1)
 
     #Build 1 to n relationship to answer table
-    #answers = db.relationship("Answer", backref=db.backref("user", lazy=True), lazy=True )
+    answers = db.relationship("Answer", backref=db.backref("user", lazy=True), lazy=True )
 
 
     def __repr__(self):
@@ -60,12 +60,6 @@ class Location(db.Model):
         Unique identifier as primary key.
     factory_id : str
         The uuid imported from disfactory factory table.
-    year: int
-        year Marks which year the satellite photo was taken from our geo sources. 
-    url : str
-        URL to store the location on the map.
-    bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng : float
-        The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
     done_at : datetime
         The time when the location is marked done.
     answers : relationship
@@ -74,69 +68,70 @@ class Location(db.Model):
     # Basic information
     id = db.Column(db.Integer, primary_key=True)
     factory_id = db.Column(db.String(255), nullable=False)
-    year = db.Column(db.Integer, nullable=False)
-    url = db.Column(db.String, nullable=True)
 
-    # Display information
-    bbox_left_up_lat = db.Column(db.Float, default = 0)
-    bbox_left_up_lng = db.Column(db.Float, default = 0)
-    bbox_right_down_lat = db.Column(db.Float, default = 0)
-    bbox_right_down_lng = db.Column(db.Float, default = 0)
+    # Others
+    done_at = db.Column(db.DateTime, default=None)
 
     # #Build 1 to n relationship to answer table
     answers = db.relationship("Answer", backref=db.backref("location", lazy=True), lazy=True )
 
-    # Others
-    done_at = db.Column(db.DateTime)
-
     def __repr__(self):
-        return "<id=%r factory_id=%r year=%r url=%r bbox_left_up_lat=%r bbox_left_up_lng=%r bbox_right_down_lat=%r bbox_right_down_lng=%r done_at=%r" %(
-                self.id, self.factory_id, self.year, self.url, 
-                self.bbox_left_up_lat, self.bbox_left_up_lng, self.bbox_right_down_lat, self.bbox_right_down_lng, 
-                self.done_at)
+        return "<id=%r factory_id=%r done_at=%r>" %(self.id, self.factory_id, self.done_at)
 
 
 class Answer(db.Model):
     """
-    Class representing a location.
+    Class representing an answer.
 
     Attributes
     ----------
     id : int
         Unique identifier as primary key.
-    location_id : int
-        Foreign key to Location id
-    user_id : int
-        Foreign key to User id
-    is_factory : int
-        User's answer for if building a factory
-    is_expansion : int
-        User's answer for if expanding a factory
-    is_gold_standard : int
-        If a golden standard answer       
-    bbox_left_up_lat, bbox_left_up_lng, bbox_right_down_lat, bbox_right_down_lng : float
-        The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
     timestamp : datetime
         The time when the location is marked done.
+    year_old: int
+        year Marks which year the satellite photo was taken from our geo sources. 
+    year_new: int
+        A newer photo to be compared with the one taken in year_old
+    source_url_root : str
+        URL to store the location on the map.
+    land_usage : int
+        User's answer of judging a construction is built. 0: construction, 1: unknown, 2: farm
+    expansion : int
+        User's answer of judging the construction is expanded. 0: unknown, 1: nope, 2:yes
+    is_gold_standard : bool
+        If it's a golden standard answer provided by admnin.
+    bbox_left_top_lat, bbox_left_top_lng, bbox_bottom_right_lat, bbox_bottom_right_lng : float
+        The coordinates for the 2 points forming the inner boundbox for displaying the focus.        
+    zoom_level : int
+        The zoom level for displaying.        
+    location_id : int
+        Foreign key to Location table
     """
     # Basic information
     id = db.Column(db.Integer, primary_key=True)
     timestamp = db.Column(db.DateTime, server_default=func.now())
+    year_old = db.Column(db.Integer, nullable=False)
+    year_new = db.Column(db.Integer, nullable=False)
+    source_url_root = db.Column(db.String, nullable=True)
     
     # user answers
-    is_factory = db.Column(db.Integer, nullable=False)
-    is_expansion = db.Column(db.Integer, nullable=False)
-    is_gold_standard = db.Column(db.Integer, nullable=False)
-    bbox_left_up_lat = db.Column(db.Float, default = 0)
-    bbox_left_up_lng = db.Column(db.Float, default = 0)
-    bbox_right_down_lat = db.Column(db.Float, default = 0)
-    bbox_right_down_lng = db.Column(db.Float, default = 0)
+    land_usage = db.Column(db.Integer, nullable=False)
+    expansion = db.Column(db.Integer, nullable=False)
+    is_gold_standard = db.Column(db.Boolean, nullable=False)
+    bbox_left_top_lat = db.Column(db.Float, default=0)
+    bbox_left_top_lng = db.Column(db.Float, default=0)
+    bbox_bottom_right_lat = db.Column(db.Float, default=0)
+    bbox_bottom_right_lng = db.Column(db.Float, default=0)
+    zoom_level = db.Column(db.Integer, default=0)
 
     # Build N to 1 relationship to location and user table
-    location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    location_id = db.Column(db.Integer, db.ForeignKey("location.id"), nullable=False)
 
     def __repr__(self):
-        return "<id=%r location_id=%r user_id=%r is_factory=%r is_factory=%r is_expansion=%r is_gold_standard=%r>" % (
-                self.id, self.location_id, self.user_id, self.is_factory, self.is_expansion, self.is_gold_standard)
+        return "<id=%r user_id=%r location_id=%r timestamp=%r year_old=%r year_new=%r source_url_root=%r land_usage=%r expansion=%r \
+                 is_gold_standard=%r bbox_left_top_lat=%r bbox_left_top_lng=%r bbox_bottom_right_lat=%r bbox_bottom_right_lng=%r zoom_level=%r>" % (
+                self.id, self.user_id, self.location_id, self.timestamp, self.year_old, self.year_new, self.source_url_root, self.land_usage, self.expansion, 
+                self.is_gold_standard, self.bbox_left_top_lat, self.bbox_left_top_lng, self.bbox_bottom_right_lat, self.bbox_bottom_right_lng, self.zoom_level)
 

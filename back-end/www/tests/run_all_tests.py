@@ -1,5 +1,7 @@
 import unittest
 from user_tests import UserTest
+from location_tests import LocationTest
+from answer_tests import AnswerTest
 
 
 if __name__ == "__main__":
