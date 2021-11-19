@@ -119,11 +119,11 @@ class Answer(db.Model):
     land_usage = db.Column(db.Integer, nullable=False)
     expansion = db.Column(db.Integer, nullable=False)
     is_gold_standard = db.Column(db.Boolean, nullable=False)
-    bbox_left_top_lat = db.Column(db.Float, default = 0)
-    bbox_left_top_lng = db.Column(db.Float, default = 0)
-    bbox_bottom_right_lat = db.Column(db.Float, default = 0)
-    bbox_bottom_right_lng = db.Column(db.Float, default = 0)
-    zoom_level = db.Column(db.Integer, default = 0)
+    bbox_left_top_lat = db.Column(db.Float, default=0)
+    bbox_left_top_lng = db.Column(db.Float, default=0)
+    bbox_bottom_right_lat = db.Column(db.Float, default=0)
+    bbox_bottom_right_lng = db.Column(db.Float, default=0)
+    zoom_level = db.Column(db.Integer, default=0)
 
     # Build N to 1 relationship to location and user table
     user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)

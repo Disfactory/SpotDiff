@@ -182,8 +182,8 @@ def get_locations(size, gold_standard_size):
         return None
 
     # get locations which has gold answers
-    gold_answers_filter = Answer.query.filter(Answer.is_gold_standard==True)
-    gold_location_list = [l.location_id for l in gold_answers_filter.distinct(Answer.location_id).all()]
+    gold_answers_filter = Answer.query.filter(Answer.is_gold_standard)
+    gold_location_list = [loc.location_id for loc in gold_answers_filter.distinct(Answer.location_id).all()]
 
     if(len(gold_location_list) < gold_standard_size):
         raise Exception("Cannot find expected amount of locations which have gold standards :", gold_standard_size)
