@@ -186,7 +186,8 @@ def get_locations(size, gold_standard_size):
     gold_location_list = [loc.location_id for loc in gold_answers_filter.distinct(Answer.location_id).all()]
 
     if(len(gold_location_list) < gold_standard_size):
-        raise Exception("Cannot find expected amount of locations which have gold standards :", gold_standard_size)
+        err_rstring = "Cannot find expected(enough) amount of locations which have gold standards :{}. {} are found.".format(gold_standard_size, len(gold_location_list))
+        raise Exception(err_rstring)
 
     gold_location_filter = Location.query.filter(Location.id.in_(gold_location_list))
 
@@ -210,7 +211,9 @@ def get_locations(size, gold_standard_size):
         sel_non_gold_location_list = rand_none_gold_location_list[0:(size - gold_standard_size)]
         dbprint("sel_non_gold_location_list : ", sel_non_gold_location_list)
 
-    location_list = sel_gold_location_list + sel_non_gold_location_list
+    location_list = sel_non_gold_location_list
+    if(sel_gold_location_list is not None):
+        location_list += sel_gold_location_list
 
     if(len(location_list) < size):
         raise Exception("Cannot find expected amount of locations", size)
@@ -233,3 +236,14 @@ def get_location_is_done_count():
     count = location_query.count()
     return count
 
+
+def get_location_count():
+    """
+    Get the total number of locations in the db
+
+    Returns
+    -------
+    count : the total number of locations
+    """
+    count = Location.query.count()
+    return count
