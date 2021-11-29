@@ -3,6 +3,7 @@
 from models.model import db
 from models.model import Answer
 
+
 def create_answer(user_id, location_id, year_old, year_new, source_url_root, land_usage, expansion, is_gold_standard, bbox_left_top_lat, bbox_left_top_lng, bbox_bottom_right_lat, bbox_bottom_right_lng, zoom_level):
     """
     Create an answer reported by an user with a location.
@@ -121,7 +122,7 @@ def create_answer_with_result(user_id, location_id, year_old, year_new, source_u
 
 def get_answer_count():
     """
-    Get total number of answer exclusive of gold answers
+    Get total number of answers exclusive of gold answers
     """
     answer_count = Answer.query.filter_by(is_gold_standard=False).count()
     return answer_count
@@ -199,6 +200,23 @@ def get_answers_by_user_and_location(user_id, location_id):
     answers = Answer.query.filter_by(user_id=user_id, location_id=location_id).all()
     
     return answers
+
+
+def get_gold_answer_by_location(location_id):
+    """
+    Get the (first) gold answer specified by location id.
+
+    Parameters
+    ----------
+    location_id : int
+        ID of the location.
+    Returns
+    -------
+    answers : Answer
+        The gold answer.   
+    """
+    answer = Answer.query.filter_by(is_gold_standard=True, location_id=location_id).first()
+    return answer
 
 
 def remove_answer(answer_id):
