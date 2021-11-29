@@ -118,8 +118,8 @@ class LocationTest(BasicTest):
     def test_get_location_is_done_count(self):
         """
         1. Create 4 locations, mark 3 to be done.
+        2. Get the location is done count. Pass if 3.
         """
-        u1 = user_operations.create_user("111")
         l1 = location_operations.create_location("AAA")
         l2 = location_operations.create_location("BBB")
         l3 = location_operations.create_location("CCC")
@@ -131,6 +131,19 @@ class LocationTest(BasicTest):
 
         count = location_operations.get_location_is_done_count()
         assert count == 3
+    
+    
+    def test_get_location_count(self):
+        """
+        1. Create 4 locations
+        2. Get the location count. Pass if 4.
+        """
+        l1 = location_operations.create_location("AAA")
+        l2 = location_operations.create_location("BBB")
+        l3 = location_operations.create_location("CCC")
+        l4 = location_operations.create_location("DDD")
+        count = location_operations.get_location_count()
+        assert count == 4
 
 
 if __name__ == "__main__":
