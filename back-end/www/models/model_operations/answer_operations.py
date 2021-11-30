@@ -108,7 +108,7 @@ def create_answer_with_result(user_id, location_id, year_old, year_new, source_u
 
     # Get the gold answer and compare result
     compare_result = 0
-    gold_answer = Answer.query.filter_by(is_gold_standard=True, location_id=location_id, year_old=year_old, year_new = year_new).first()
+    gold_answer = Answer.query.filter_by(is_gold_standard=True, location_id=location_id, year_old=year_old, year_new=year_new).first()
     if(gold_answer != None):
         if ((gold_answer.land_usage == land_usage) and (gold_answer.expansion == expansion)):
             compare_result = 0
@@ -242,3 +242,32 @@ def remove_answer(answer_id):
     db.session.commit()
 
 
+def is_answer_passed(answer_id):
+    """
+    Test if the answer passes the test (with the gold standard)
+
+    Parameters
+    ----------
+    answer_id : int
+        ID of the answer.
+
+    Raises
+    ------
+    exception : Exception
+        When no answer is found.    
+    """    
+    is_passed = False
+    my_answer = get_answer_by_id(answer_id)
+    
+    if(my_answer is None):
+        raise Exception("Cannot find the answer.")
+
+    gold_answer = Answer.query.filter_by(is_gold_standard=True, location_id=my_answer.location_id).first()
+
+    if(gold_answer is None):
+        raise Exception("Cannot find the gold standard answer.")
+
+    if(gold_answer.land_usage == my_answer.land_usage and gold_answer.expansion == my_answer.expansion):
+        is_passed = True
+
+    return is_passed    

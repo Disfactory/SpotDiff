@@ -275,5 +275,31 @@ class AnswerTest(BasicTest):
         assert(my_answer.is_gold_standard == True)
 
 
+
+    def test_is_answer_passed(self):
+        """
+        1. user 1 creates 1 incorrect answer and 1 incorrect answer to different locations. (Admin creates 2 gold answers.)
+        2. Pass if the test is correct.
+        """        
+        user1 = user_operations.create_user("123")
+        user_admin = user_operations.create_user("ADMIN")
+        l1 = location_operations.create_location("AAA")
+        l2 = location_operations.create_location("BBB")
+
+        BBOX_LEFT_TOP_LAT = 0.1
+        BBOX_LEFT_TOP_LNG = 0.2
+        BBOX_BOTTOM_RIGHT_LAT = 0.3
+        BBOX_BOTTOM_RIGHT_LNG = 0.4
+        answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer1_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer2 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer2_gold = answer_operations.create_answer(user_admin.id, l2.id, 2000, 2010, "", 1, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+
+        is_answer1_passed = answer_operations.is_answer_passed(answer1.id)
+        assert(is_answer1_passed==False)
+        is_answer2_passed = answer_operations.is_answer_passed(answer2.id)
+        assert(is_answer2_passed==True)
+
+        
 if __name__ == "__main__":
     unittest.main()
