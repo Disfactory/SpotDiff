@@ -1,5 +1,7 @@
 from basic_tests import BasicTest
 from models.model_operations import user_operations
+from models.model_operations import location_operations
+from models.model_operations import answer_operations
 from models.model import db
 import unittest
 
@@ -9,9 +11,11 @@ class UserTest(BasicTest):
     def setUp(self):
         db.create_all()
 
+
     def test_create_user(self):
         user = user_operations.create_user("123")
         assert user in db.session
+
 
     def test_get_user_by_id(self):
         client_id = "456"
@@ -20,11 +24,13 @@ class UserTest(BasicTest):
         retrieved_user = user_operations.get_user_by_id(user_id)
         assert retrieved_user.client_id == client_id
 
+
     def test_get_user_by_client_id(self):
         client_id = "456"
         user = user_operations.create_user(client_id)
         retrieved_user = user_operations.get_user_by_client_id(client_id)
         assert retrieved_user.id == user.id
+
 
     def test_remove_user(self):
         client_id = "789"
@@ -33,6 +39,52 @@ class UserTest(BasicTest):
         user_id = user.id
         user_operations.remove_user(user.id)
         assert user not in db.session
+
+
+    def test_get_all_users(self):
+        client_id = "123"
+        user1 = user_operations.create_user(client_id)
+        assert user1 in db.session
+        client_id = "456"
+        user2 = user_operations.create_user(client_id)
+        assert user2 in db.session
+        users = user_operations.get_all_users()
+        assert(len(users) == 2)
+
+
+    def test_get_user_count(self):
+        client_id = "123"
+        user1 = user_operations.create_user(client_id)
+        assert user1 in db.session
+        client_id2 = "456"
+        user2 = user_operations.create_user(client_id2)
+        assert user2 in db.session
+        count = user_operations.get_user_count()
+        assert(count == 2)
+
+
+    def test_get_user_done_location_count(self):
+        """
+        1. user 1 creates 1 incorrect answer for location 1. user 1 creates 1 incorrect and 1 correct answers for location 2.
+        2. Check the user done_factory count. Pass if 1 returns.
+        """
+        BBOX_LEFT_TOP_LAT = 0.1
+        BBOX_LEFT_TOP_LNG = 0.2
+        BBOX_BOTTOM_RIGHT_LAT = 0.3
+        BBOX_BOTTOM_RIGHT_LNG = 0.4
+
+        client_id = "123"
+        user1 = user_operations.create_user(client_id)
+        user_admin = user_operations.create_user("ADMIN")
+        l1 = location_operations.create_location("AAA")
+        l2 = location_operations.create_location("BBB")
+        answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer2 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer2 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 0, 0, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer_gold = answer_operations.create_answer(user_admin.id, l2.id, 2000, 2010, "", 1, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        count = user_operations.get_user_done_location_count(client_id)
+        assert(count == 1)
 
 
 if __name__ == "__main__":

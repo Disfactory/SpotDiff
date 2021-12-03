@@ -2,6 +2,7 @@
 
 from models.model import db
 from models.model import User
+from models.model_operations import answer_operations
 
 
 def create_user(client_id):
@@ -51,8 +52,8 @@ def get_user_by_client_id(client_id):
 
     Parameters
     ----------
-    client_id : int
-        ID of the user.
+    client_id : str
+        ID provided by an external authentication service.
 
     Returns
     -------
@@ -129,3 +130,62 @@ def remove_user(user_id):
 
     db.session.delete(user)
     db.session.commit()
+
+
+def get_user_count():
+    """
+    Get total user count
+
+    Returns
+    -------
+    count : int
+        Number of total users
+    """
+    count = User.query.count()
+
+    return count
+
+
+def get_user_done_location_count(client_id):
+    """
+    Get the distinct location count that the user has ever identified successfully.
+
+    Parameters
+    ----------
+    client_id : str
+        ID provided by an external authentication service.
+
+    Returns
+    -------
+    count : int
+        Number of factories that the user identified
+    """    
+    user = get_user_by_client_id(client_id)
+
+    if user is None:
+        raise Exception("Cannot find the user.")
+
+    if(user.answers is None):
+        return 0
+
+    user_answer_list = user.answers
+    identified_answers = {}
+    
+    # Exlore all the answers this user reported
+    for user_answer in user_answer_list:
+        #If the location has been marked identified by this user once successfully, skip the matching.
+        if(user_answer.location_id in identified_answers.keys()):
+            next
+
+        # Get the gold answer for this location
+        gold_answer = answer_operations.get_gold_answer_by_location(user_answer.location_id)
+
+        #Cehck if the gold answer exists, and compares the user's answer. Mark identified if matches.
+        if(gold_answer is not None):
+            if((gold_answer.land_usage == user_answer.land_usage) and 
+               (gold_answer.expansion == user_answer.expansion)):
+               
+                identified_answers[user_answer.location_id] = True
+
+    return len(identified_answers.keys())
+
