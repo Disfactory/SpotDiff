@@ -81,38 +81,53 @@ class LocationTest(BasicTest):
 
     def test_get_locations(self):
       """
-        1. Create 10 Answers, only #3 and #5 has gold answers
-        2. Get size=5 locations including gold_standard_size=1 gold answer. 
-        Pass if 5 locations are gotten, and only 1 of the 2 locations which have gold answers are gotten.
+        1. Create several Answers which belongs to 7 locations, only Loc#2 and Loc#3 have gold answers. Loc#7 and Loc#8 has been identified by user "222".
+        2. Get client_id="222", size=5 locations including gold_standard_size=1 gold answer for 5 times. 
+        Pass if 5 locations are gotten not including Loc#7 or Loc#8, and only 1 of the 2 locations which have gold answers are gotten.
       """
       u1 = user_operations.create_user("111")
+      u2 = user_operations.create_user("222")
       l1 = location_operations.create_location("AAA")
       l2 = location_operations.create_location("BBB")
       l3 = location_operations.create_location("CCC")
       l4 = location_operations.create_location("DDD")
       l5 = location_operations.create_location("EEE")
       l6 = location_operations.create_location("FFF")
+      l7 = location_operations.create_location("GGG")
+      l8 = location_operations.create_location("GGG")
 
       #only l2 and l3 has gold answers. l1, l4, l5, l6 doesn't.
       answer_operations.create_answer(u1.id, l1.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+
       answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, True, 0, 0, 0, 0, 0)
       answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+
       answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, True, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+
+      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+
       answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
       answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      
       answer_operations.create_answer(u1.id, l6.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
 
-      locations = location_operations.get_locations(5, 1)
+      # user answered l7 and l8
+      answer_operations.create_answer(u2.id, l7.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u2.id, l8.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
 
-      assert len(locations)==5
-      assert not (l2 in locations and l3 in locations)
-      assert  (l2 in locations or l3 in locations)
+      for i in range(5):
+          locations = location_operations.get_locations("222", 5, 1)
+
+          assert len(locations)==5
+          assert not (l2 in locations and l3 in locations)
+          assert  (l2 in locations or l3 in locations)
+          assert not (l7 in locations or l8 in locations)
+
 
 
     def test_get_location_is_done_count(self):
