@@ -15,32 +15,45 @@ def create_answer(user_id, location_id, year_old, year_new,
     ----------
     user_id : int
         Foreign key to the user table.
+        (required)
     location_id : int
         Foreign key to the location table.
+        (required)
     year_old: int
         The year where the satellite photo was taken from our geo sources.
+        (required)
     year_new: int
         A newer photo to be compared with the one taken in year_old.
+        (required)
     source_url_root : str
         URL to store the location on the map.
+        (required)
     land_usage : int
         User's answer of judging if the land is a farm or has buildings.
         (check the answer table in model.py for the meaning of the values)
+        (required)
     expansion : int
         User's answer of judging the construction is expanded.
         (check the answer table in model.py for the meaning of the values)
+        (required)
     is_gold_standard : bool
         If it's a golden standard answer provided by admnin.
+        (required)
     bbox_left_top_lat : float
         The latitude of the top-left corner of the bounding box for displaying the focus.
+        (optional)
     bbox_left_top_lng : float
         The longitude of the top-left corner of the bounding box for displaying the focus.
+        (optional)
     bbox_bottom_right_lat : float
         The latitude of the bottom-right corner of the bounding box for displaying the focus.
+        (optional)
     bbox_bottom_right_lng : float
         The longitude of the bottom-right corner of the bounding box for displaying the focus.
+        (optional)
     zoom_level : int
         The zoom level for displaying the location.
+        (optional)
 
     Returns
     -------
@@ -67,88 +80,13 @@ def create_answer(user_id, location_id, year_old, year_new,
             year_new=year_new, source_url_root=source_url_root, land_usage=land_usage,
             expansion=expansion, is_gold_standard=is_gold_standard,
             bbox_left_top_lat=bbox_left_top_lat, bbox_left_top_lng=bbox_left_top_lng,
-            box_bottom_right_lat=bbox_bottom_right_lat,
+            bbox_bottom_right_lat=bbox_bottom_right_lat,
             bbox_bottom_right_lng=bbox_bottom_right_lng, zoom_level=zoom_level)
 
     db.session.add(answer)
     db.session.commit()
 
     return answer
-
-
-def create_answer_with_result(user_id, location_id, year_old, year_new,
-        source_url_root, land_usage, expansion, is_gold_standard,
-        bbox_left_top_lat, bbox_left_top_lng, bbox_bottom_right_lat,
-        bbox_bottom_right_lng, zoom_level):
-    """
-    Create an answer and return if it passed or not by checking the gold standards.
-
-    Parameters
-    ----------
-    user_id : int
-        Foreign key to the user table.
-    location_id : int
-        Foreign key to the location table.
-    year_old: int
-        The year where the satellite photo was taken from our geo sources.
-    year_new: int
-        A newer photo to be compared with the one taken in year_old.
-    source_url_root : str
-        URL to store the location on the map.
-    land_usage : int
-        User's answer of judging if the land is a farm or has buildings.
-        (check the answer table in model.py for the meaning of the values)
-    expansion : int
-        User's answer of judging the construction is expanded.
-        (check the answer table in model.py for the meaning of the values)
-    is_gold_standard : bool
-        If it's a golden standard answer provided by admnin.
-    bbox_left_top_lat : float
-        The latitude of the top-left corner of the bounding box for displaying the focus.
-    bbox_left_top_lng : float
-        The longitude of the top-left corner of the bounding box for displaying the focus.
-    bbox_bottom_right_lat : float
-        The latitude of the bottom-right corner of the bounding box for displaying the focus.
-    bbox_bottom_right_lng : float
-        The longitude of the bottom-right corner of the bounding box for displaying the focus.
-    zoom_level : int
-        The zoom level for displaying the location.
-
-    Returns
-    -------
-    compare_result : int
-        Compare with the gold answer.
-        0 means Pass
-        1 means Fail
-        -1 means that the gold standard does not exist
-
-    Raises
-    ------
-    exception : Exception
-        Type checking for land_usage, expansion, year_old, year_new, and is_gold_standard.
-    """
-    new_answer = create_answer(user_id, location_id, year_old, year_new,
-            source_url_root, land_usage, expansion, is_gold_standard,
-            bbox_left_top_lat, bbox_left_top_lng, bbox_bottom_right_lat,
-            bbox_bottom_right_lng, zoom_level)
-
-    # Bypass the gold standard itself
-    if(is_gold_standard):
-        return 0
-
-    # Get the gold answer and compare result
-    compare_result = 0
-    gold_answer = Answer.query.filter_by(is_gold_standard=True,
-            location_id=location_id, year_old=year_old, year_new=year_new).first()
-    if(gold_answer != None):
-        if ((gold_answer.land_usage == land_usage) and (gold_answer.expansion == expansion)):
-            compare_result = 0
-        else:
-            compare_result = 1
-    else:
-        compare_result = -1
-
-    return compare_result
 
 
 def get_answer_count():
@@ -273,34 +211,41 @@ def remove_answer(answer_id):
     db.session.commit()
 
 
-def is_answer_passed(answer_id):
+def check_answer_correctness(location_id, land_usage, expansion):
     """
-    Test if the answer passes the data quality check (with the gold standard)
+    Check the correctness of the answer.
 
     Parameters
     ----------
-    answer_id : int
-        ID of the answer.
+    location_id : int
+        ID of the location.
+    land_usage : int    
+        User's answer of judging if the land is a farm or has buildings.
+        (check the answer table in model.py for the meaning of the values)
+    expansion : int
+        User's answer of judging the construction is expanded.
+        (check the answer table in model.py for the meaning of the values)
 
-    Raises
+    Return
     ------
-    exception : Exception
-        When no answer is found.
-    exception : Exception
-        When no corresponding gold standard answer is found.
+    result : int
+        0 : Passed the quality test.
+        1 : Failed the quality test.
+        2 : No gold standard exists yet.
+          
     """
-    is_passed = False
-    my_answer = get_answer_by_id(answer_id)
 
-    if my_answer is None:
-        raise Exception("Cannot find the answer.")
+    gold_answer = Answer.query.filter_by(is_gold_standard=True, location_id=location_id).first()
 
-    gold_answer = Answer.query.filter_by(is_gold_standard=True, location_id=my_answer.location_id).first()
-
+    # If the gold answer doesn't exist
     if gold_answer is None:
-        raise Exception("Cannot find the gold standard answer.")
+        result = 2
+        return result
 
-    if gold_answer.land_usage == my_answer.land_usage and gold_answer.expansion == my_answer.expansion:
-        is_passed = True
+    # If the gold answer exists, check the correctness
+    if gold_answer.land_usage == land_usage and gold_answer.expansion == expansion:
+        result = 0
+    else:
+        result = 1
 
-    return is_passed
+    return result        

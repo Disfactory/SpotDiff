@@ -65,9 +65,10 @@ class UserTest(BasicTest):
 
     def test_get_user_done_location_count(self):
         """
-        1. user 1 creates 1 incorrect answer for location 1. user 1 creates 1 incorrect and 1 correct answers for location 2.
-        2. Check the user done_factory count. Pass if 1 returns.
+        1. user 1 creates 3 answers to l1, and 2 answers to l2. user_admin creates 1 answer to l1.
+        2. Check the return value of get_user_done_location_count for user 1. Pass if 2 returns.
         """
+
         BBOX_LEFT_TOP_LAT = 0.1
         BBOX_LEFT_TOP_LNG = 0.2
         BBOX_BOTTOM_RIGHT_LAT = 0.3
@@ -79,12 +80,15 @@ class UserTest(BasicTest):
         l1 = location_operations.create_location("AAA")
         l2 = location_operations.create_location("BBB")
         answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer2 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer2 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 0, 0, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer_gold = answer_operations.create_answer(user_admin.id, l2.id, 2000, 2010, "", 1, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        count = user_operations.get_user_done_location_count(client_id)
-        assert(count == 1)
+        answer2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer3 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 0, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer4 = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 0, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+
+        answer4 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer5 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 0, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+
+        done_loc_count = user_operations.get_user_done_location_count(user1.id)
+        assert(done_loc_count == 2)
 
 
 if __name__ == "__main__":

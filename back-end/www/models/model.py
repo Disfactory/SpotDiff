@@ -127,7 +127,7 @@ class Answer(db.Model):
     timestamp = db.Column(db.DateTime, server_default=func.now())
     year_old = db.Column(db.Integer, nullable=False)
     year_new = db.Column(db.Integer, nullable=False)
-    source_url_root = db.Column(db.String, nullable=True)
+    source_url_root = db.Column(db.String, nullable=False)
 
     # User answers
     land_usage = db.Column(db.Integer, nullable=False)

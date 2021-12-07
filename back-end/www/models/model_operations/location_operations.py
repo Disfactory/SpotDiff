@@ -9,7 +9,7 @@ from models.model import db
 from models.model import Location
 from models.model import Answer
 from models.model import User
-from models.model_operations.user_operations import get_user_by_client_id
+from models.model_operations.user_operations import get_user_by_id
 from models.model_operations.answer_operations import get_answers_by_user
 
 
@@ -144,14 +144,14 @@ def remove_location(location_id):
     db.session.commit()
 
 
-def get_locations(user_client_id, size, gold_standard_size):
+def get_locations(user_id, size, gold_standard_size):
     """
     Get the locations that can be returned to the front-end.
 
     Parameters
     ----------
-    user_client_id : str
-        client id of the user
+    user_id : int
+        ID of the user.
     size : int
         Total number of locations to be returned.
     gold_standard_size : int
@@ -188,10 +188,10 @@ def get_locations(user_client_id, size, gold_standard_size):
         raise Exception("The gold standard size cannot exceed size.")
 
     if size == 0:
-        return None
+        return []
 
     # Get the user's answers
-    target_user = get_user_by_client_id(user_client_id)
+    target_user = get_user_by_id(user_id)
     user_answers = get_answers_by_user(target_user.id)
     user_answered_location_id_list = [answer.location_id for answer in user_answers]
 
@@ -199,12 +199,12 @@ def get_locations(user_client_id, size, gold_standard_size):
     gold_answers_filter = Answer.query.filter(Answer.is_gold_standard)
     gold_location_id_list = [loc.location_id for loc in gold_answers_filter.distinct(Answer.location_id).all()]
 
-    if gold_location_id_list is None:
+    if len(gold_location_id_list) == 0:
         raise Exception("No gold standards exist. DB not initialized?", size)
 
     if len(gold_location_id_list) < gold_standard_size:
         err_msg = "Cannot find expected amount of locations which have gold standards :{}. {} are found.".format(
-                gold_standard_size, len(gold_location_list))
+                gold_standard_size, len(gold_location_id_list))
         raise Exception(err_msg)
 
     # Get the locations which have been answered by the user
@@ -214,15 +214,15 @@ def get_locations(user_client_id, size, gold_standard_size):
     gold_location_filter = Location.query.filter(Location.id.in_(gold_location_id_list))
 
     # Get to-be-excluded location ids, which are not either with gold answers or identified by the user before
-    if user_identified_locations is not None:
+    if len(user_identified_locations) > 0:
         exclude_location_id_list = gold_location_id_list + user_identified_locations
     else:
         exclude_location_id_list = gold_location_id_list
 
     non_gold_locations_filter = Location.query.filter(Location.id.not_in(exclude_location_id_list))
 
-    sel_gold_location_list = None
-    sel_non_gold_location_list = None
+    sel_gold_location_list = []
+    sel_non_gold_location_list = []
 
     # Randomly sort and select the first locations which has been provideded gold answers
     if gold_standard_size > 0:
@@ -239,7 +239,7 @@ def get_locations(user_client_id, size, gold_standard_size):
 
     # Combine and shuffle the list
     location_list = sel_non_gold_location_list
-    if sel_gold_location_list is not None:
+    if len(sel_gold_location_list) > 0:
         location_list += sel_gold_location_list
         random.shuffle(location_list)
 

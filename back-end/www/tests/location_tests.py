@@ -81,12 +81,22 @@ class LocationTest(BasicTest):
 
     def test_get_locations(self):
       """
-        1. Create several Answers which belongs to 7 locations, only Loc#2 and Loc#3 have gold answers. Loc#7 and Loc#8 has been identified by user "222".
-        2. Get client_id="222", size=5 locations including gold_standard_size=1 gold answer for 5 times. 
+        0. Test no location situation. Pass if assert raises.
+        1. Create several Answers which belong to 8 locations, only Loc#2 and Loc#3 have gold answers. Loc#6 never answered by anyone. Loc#7 and Loc#8 has been identified by user u2.
+        2. Get locations for user 2, size=5 and gold_standard_size=1 for 5 times. 
         Pass if 5 locations are gotten not including Loc#7 or Loc#8, and only 1 of the 2 locations which have gold answers are gotten.
+        3. Test not enough gold standards. Pass if assert raises.
+        4. Test not enough location. Pass if assert raises.
       """
+
+      
       u1 = user_operations.create_user("111")
       u2 = user_operations.create_user("222")
+
+      # Test for no location exists.
+      with self.assertRaises(Exception) as context:
+          locations = location_operations.get_locations(u2.id, 5, 1)
+
       l1 = location_operations.create_location("AAA")
       l2 = location_operations.create_location("BBB")
       l3 = location_operations.create_location("CCC")
@@ -114,20 +124,28 @@ class LocationTest(BasicTest):
       answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
       answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
       
-      answer_operations.create_answer(u1.id, l6.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-
       # user answered l7 and l8
       answer_operations.create_answer(u2.id, l7.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
       answer_operations.create_answer(u2.id, l8.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
 
+
+      # Test a common situation.
       for i in range(5):
-          locations = location_operations.get_locations("222", 5, 1)
+          locations = location_operations.get_locations(u2.id, 5, 1)
 
           assert len(locations)==5
           assert not (l2 in locations and l3 in locations)
-          assert  (l2 in locations or l3 in locations)
+          assert  l2 in locations or l3 in locations
           assert not (l7 in locations or l8 in locations)
 
+      # Check if exception raises : not enough gold standards
+      with self.assertRaises(Exception) as context:
+          locations = location_operations.get_locations(u2.id, 5, 3)
+
+      # Check if exception raises : not enough locations
+      with self.assertRaises(Exception) as context:
+          locations = location_operations.get_locations(u2.id, 7, 3)
+      
 
 
     def test_get_location_is_done_count(self):

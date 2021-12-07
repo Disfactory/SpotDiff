@@ -145,21 +145,21 @@ def get_user_count():
     return count
 
 
-def get_user_done_location_count(client_id):
+def get_user_done_location_count(user_id):
     """
     Get the distinct location count that the user has ever identified successfully.
 
     Parameters
     ----------
-    client_id : str
-        ID provided by an external authentication service.
+    user_id : int
+        ID of the user.
 
     Returns
     -------
     count : int
-        Number of factories that the user identified.
+        Number of locations that the user identified.
     """
-    user = get_user_by_client_id(client_id)
+    user = get_user_by_id(user_id)
 
     if user is None:
         raise Exception("Cannot find the user.")
@@ -167,23 +167,6 @@ def get_user_done_location_count(client_id):
     if user.answers is None:
         return 0
 
-    user_answer_list = user.answers
-    identified_answers = {}
+    loc_count = len(set([answer.location_id for answer in user.answers]))
 
-    # Exlore all the answers this user reported
-    for user_answer in user_answer_list:
-        # If the location has been marked identified by this user once successfully, skip the matching.
-        if user_answer.location_id in identified_answers.keys():
-            next
-
-        # Get the gold answer for this location
-        gold_answer = answer_operations.get_gold_answer_by_location(user_answer.location_id)
-
-        # Check if the gold answer exists, and compares the user's answer.
-        # Mark as identified if matches.
-        if gold_answer is not None:
-            if (gold_answer.land_usage == user_answer.land_usage) and
-               (gold_answer.expansion == user_answer.expansion):
-                identified_answers[user_answer.location_id] = True
-
-    return len(identified_answers.keys())
+    return loc_count

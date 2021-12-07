@@ -35,40 +35,6 @@ class AnswerTest(BasicTest):
         assert answer.location_id == location1.id
 
 
-    def test_create_answer_with_result(self):
-        """
-          1. Create a gold answer
-          2. Create a wrong answer, an answer without gold answer reference, and a correct answer. Pass if the compare result as expected.
-        """
-        FACTORY_ID = "aaa"
-        CLIENT_ID = "ADMIN"        
-        CLIENT_ID2 = "KKK"        
-        BBOX_LEFT_TOP_LAT = 0.1
-        BBOX_LEFT_TOP_LNG = 0.2
-        BBOX_BOTTOM_RIGHT_LAT = 0.3
-        BBOX_BOTTOM_RIGHT_LNG = 0.4
-
-        # create user and location first for db consistency.
-        location1 = location_operations.create_location(FACTORY_ID)
-        user1 = user = user_operations.create_user(CLIENT_ID)
-        user2 = user = user_operations.create_user(CLIENT_ID2)
-
-        # create a gold answer for reference
-        answer = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-
-        # create a wrong answer
-        result = answer_operations.create_answer_with_result(user2.id, location1.id, 2000, 2010, "", 0, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        assert result == 1
-
-        # create an answer which has no golden answer mapping
-        result = answer_operations.create_answer_with_result(user2.id, location1.id, 2000, 2011, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        assert result == -1
-
-        # create a correct answer
-        result = answer_operations.create_answer_with_result(user2.id, location1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        assert result == 0
-
-
     def test_remove_answer(self):
         """
           Create then remove an answer. 
@@ -243,7 +209,7 @@ class AnswerTest(BasicTest):
         assert(user_answer_count == 4)
 
 
-    def test_get_gold_answer(self):
+    def test_get_gold_answer_by_location(self):
         """
             1. Create 4 answers. Only 1 of them is gold answer which belongs to the target location.
             2. Get gold answer for the target location. Pass if the expected answer successfully retrieved.
@@ -275,11 +241,13 @@ class AnswerTest(BasicTest):
         assert(my_answer.is_gold_standard == True)
 
 
-    def test_is_answer_passed(self):
+    def test_check_answer_correctness(self):
         """
-        1. user 1 creates 1 incorrect answer and 1 incorrect answer to different locations. (Admin creates 2 gold answers.)
-        2. Pass if the test is correct.
-        """        
+        1. User admin create 1 gold standard, A_gold.
+        2. User 1 creates A1, which pass the quality test with A_gold. Pass if the result is 0.
+        2. User 1 creates A2, which has different expansion result with A_gold. Pass if the result is 1.
+        2. User 1 creates A3, which have no gold standard to the location. Pass if the result is 2.
+        """
         user1 = user_operations.create_user("123")
         user_admin = user_operations.create_user("ADMIN")
         l1 = location_operations.create_location("AAA")
@@ -289,15 +257,18 @@ class AnswerTest(BasicTest):
         BBOX_LEFT_TOP_LNG = 0.2
         BBOX_BOTTOM_RIGHT_LAT = 0.3
         BBOX_BOTTOM_RIGHT_LNG = 0.4
-        answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer1_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer2 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer2_gold = answer_operations.create_answer(user_admin.id, l2.id, 2000, 2010, "", 1, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
 
-        is_answer1_passed = answer_operations.is_answer_passed(answer1.id)
-        assert(is_answer1_passed==False)
-        is_answer2_passed = answer_operations.is_answer_passed(answer2.id)
-        assert(is_answer2_passed==True)
+        A_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        A1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        A2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        A3 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        
+        result = answer_operations.check_answer_correctness(A1.location_id, A1.land_usage, A1.expansion)
+        assert(result==0)
+        result = answer_operations.check_answer_correctness(A2.location_id, A2.land_usage, A2.expansion)
+        assert(result==1)
+        result = answer_operations.check_answer_correctness(A3.location_id, A3.land_usage, A3.expansion)
+        assert(result==2)
 
         
 if __name__ == "__main__":
