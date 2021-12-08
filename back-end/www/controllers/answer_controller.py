@@ -104,7 +104,6 @@ def answer():
         pass_status = False
         submit_id_list = []
         for idx in range(len(rj["data"])):
-
             if "location_id" not in rj["data"][idx] or \
                 "land_usage" not in rj["data"][idx] or \
                 "expansion" not in rj["data"][idx]:
@@ -112,7 +111,9 @@ def answer():
                 e = InvalidUsage("Data must have location id, land_usage, and expansion.", status_code=400)
                 return handle_invalid_usage(e)
 
+            # Check every answer if gold standard exists
             result = check_answer_correctness(rj["data"][idx]["location_id"], rj["data"][idx]["land_usage"], rj["data"][idx]["expansion"])
+            
             # If anyone failed the gold standard test, return Failed immediately.
             if result == 1:
                 return_status = {"Passed" : False}

@@ -40,7 +40,11 @@ def location():
 
     Returns
     -------
-        The encoded JWT that stores location information.
+        The encoded JWT that stores location information:
+        id : int
+            ID of the location.
+        factory_id : string
+            The uuid imported from disfactory factory table.
     """    
     if request.method == "GET":
         request_json = request.get_json()
