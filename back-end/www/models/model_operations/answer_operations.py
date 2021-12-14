@@ -219,7 +219,7 @@ def check_answer_correctness(location_id, land_usage, expansion):
     ----------
     location_id : int
         ID of the location.
-    land_usage : int    
+    land_usage : int
         User's answer of judging if the land is a farm or has buildings.
         (check the answer table in model.py for the meaning of the values)
     expansion : int
@@ -228,24 +228,21 @@ def check_answer_correctness(location_id, land_usage, expansion):
 
     Return
     ------
-    result : int
-        0 : Passed the quality test.
-        1 : Failed the quality test.
-        2 : No gold standard exists yet.
-          
+    int
+        Result of the checking.
+        0 means passing the quality test.
+        1 means failing the quality test.
+        2 means no gold standard exists.
     """
 
     gold_answer = Answer.query.filter_by(is_gold_standard=True, location_id=location_id).first()
 
     # If the gold answer doesn't exist
     if gold_answer is None:
-        result = 2
-        return result
+        return 2
 
     # If the gold answer exists, check the correctness
     if gold_answer.land_usage == land_usage and gold_answer.expansion == expansion:
-        result = 0
+        return 0
     else:
-        result = 1
-
-    return result        
+        return 1
