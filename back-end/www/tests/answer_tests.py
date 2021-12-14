@@ -8,7 +8,6 @@ import unittest
 
 class AnswerTest(BasicTest):
     """Test case for answers."""
-
     def setUp(self):
         db.create_all()
 

@@ -11,11 +11,9 @@ class UserTest(BasicTest):
     def setUp(self):
         db.create_all()
 
-
     def test_create_user(self):
         user = user_operations.create_user("123")
         assert user in db.session
-
 
     def test_get_user_by_id(self):
         client_id = "456"
@@ -24,13 +22,11 @@ class UserTest(BasicTest):
         retrieved_user = user_operations.get_user_by_id(user_id)
         assert retrieved_user.client_id == client_id
 
-
     def test_get_user_by_client_id(self):
         client_id = "456"
         user = user_operations.create_user(client_id)
         retrieved_user = user_operations.get_user_by_client_id(client_id)
         assert retrieved_user.id == user.id
-
 
     def test_remove_user(self):
         client_id = "789"
@@ -39,7 +35,6 @@ class UserTest(BasicTest):
         user_id = user.id
         user_operations.remove_user(user.id)
         assert user not in db.session
-
 
     def test_get_all_users(self):
         client_id = "123"
@@ -51,7 +46,6 @@ class UserTest(BasicTest):
         users = user_operations.get_all_users()
         assert(len(users) == 2)
 
-
     def test_get_user_count(self):
         client_id = "123"
         user1 = user_operations.create_user(client_id)
@@ -62,11 +56,10 @@ class UserTest(BasicTest):
         count = user_operations.get_user_count()
         assert(count == 2)
 
-
     def test_get_user_done_location_count(self):
         """
-        1. user 1 creates 3 answers to l1, and 2 answers to l2. user_admin creates 1 answer to l1.
-        2. Check the return value of get_user_done_location_count for user 1. Pass if 2 returns.
+        User 1 creates 3 answers to l1, and 2 answers to l2. user_admin creates 1 answer to l1.
+        Check the return value of get_user_done_location_count for user 1. Pass if 2 returns.
         """
 
         BBOX_LEFT_TOP_LAT = 0.1
@@ -79,13 +72,20 @@ class UserTest(BasicTest):
         user_admin = user_operations.create_user("ADMIN")
         l1 = location_operations.create_location("AAA")
         l2 = location_operations.create_location("BBB")
-        answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer3 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 0, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer4 = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 0, True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
 
-        answer4 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
-        answer5 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 0, False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)        
+        answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1,
+                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1,
+                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer3 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 0,
+                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer4 = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 0,
+                True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+
+        answer4 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1,
+                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer5 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 0,
+                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         done_loc_count = user_operations.get_user_done_location_count(user1.id)
         assert(done_loc_count == 2)
