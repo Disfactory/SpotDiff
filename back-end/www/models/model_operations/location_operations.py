@@ -208,6 +208,7 @@ def get_locations(user_id, size, gold_standard_size):
         raise Exception(err_msg)
 
     # Get the locations which have been answered by the user
+    # TODO: need to select the locations where the Location.done_at is None (have not been identified)
     user_identified_location_filter = Location.query.filter(Location.id.in_(user_answered_location_id_list))
     user_identified_locations = [loc.id for loc in user_identified_location_filter.all()]
 

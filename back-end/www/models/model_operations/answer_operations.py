@@ -246,3 +246,39 @@ def check_answer_correctness(location_id, land_usage, expansion):
         return 0
     else:
         return 1
+
+
+def batch_process_answers(answers):
+    """
+    Process the answers returned by the front-end and write them into the database.
+
+    Parameters
+    ----------
+    answers : list
+        A list of answers provided by the front-end user.
+        Each answer should be a dictionary with the following structure:
+            {"timestamp": XXX,
+             "location_id": XXX,
+             "year_new": XXX,
+             "year_old": XXX,
+             "zoom_level": XXX,
+             "left_top_lat": XXX,
+             “left_top_lng”: XXX,
+             "bottom_right_lat": XXX,
+             "bottom_right_lng": XXX,
+             "land_usage": XXX,
+             "expansion": XXX}
+        The explanation of the parameters are in the answer table in the model.py file.
+
+    Raises
+    ------
+    exception : Exception
+        When no gold standards are found.
+    """
+    # TODO: please implement this function
+    # Identify the answers that are gold standards (with gold_standard_status 0 in the answer table)
+    # Raise an exception if there is no gold standards
+    # Check if gold standards are answered by the user correctly
+    # If the gold answers are not correct, write the answers with gold_standard_status 2 (failed)
+    # If the gold answers are correct, write the answers with gold_standard_status 1 (passed)
+    pass

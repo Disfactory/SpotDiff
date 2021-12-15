@@ -130,6 +130,8 @@ class Answer(db.Model):
     source_url_root = db.Column(db.String, nullable=False)
 
     # User answers
+    # TODO: delete the is_gold_standard column (also please update the docstring)
+    # TODO: add the gold_standard_status column (also please update the docstring)
     land_usage = db.Column(db.Integer, nullable=False)
     expansion = db.Column(db.Integer, nullable=False)
     is_gold_standard = db.Column(db.Boolean, nullable=False)
