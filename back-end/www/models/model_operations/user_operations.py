@@ -1,8 +1,6 @@
 """Functions to operate the user table."""
-
 from models.model import db
 from models.model import User
-from models.model_operations import answer_operations
 
 
 def create_user(client_id):
@@ -147,12 +145,17 @@ def get_user_count():
 
 def get_user_done_location_count(user_id):
     """
-    Get the distinct location count that the user has ever identified successfully.
+    Get the location count that the user has identified.
 
     Parameters
     ----------
     user_id : int
         ID of the user.
+
+    Raises
+    ------
+    exception : Exception
+        When no user is found.
 
     Returns
     -------

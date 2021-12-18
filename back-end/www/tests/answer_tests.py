@@ -21,6 +21,7 @@ class AnswerTest(BasicTest):
         BBOX_LEFT_TOP_LNG = 0.2
         BBOX_BOTTOM_RIGHT_LAT = 0.3
         BBOX_BOTTOM_RIGHT_LNG = 0.4
+        PASS_GOLD_TEST = 1
 
         # Create user and location first for db consistency
         location1 = location_operations.create_location(FACTORY_ID)
@@ -28,11 +29,12 @@ class AnswerTest(BasicTest):
 
         # Create answer
         answer = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         assert answer in db.session
         assert answer.user_id == user1.id
         assert answer.location_id == location1.id
+        assert answer.gold_standard_status == PASS_GOLD_TEST
 
     def test_remove_answer(self):
         """
@@ -52,7 +54,7 @@ class AnswerTest(BasicTest):
         user1 = user = user_operations.create_user(CLIENT_ID)
 
         answer = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                1, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         assert answer in db.session
 
         answer_id = answer.id
@@ -77,7 +79,7 @@ class AnswerTest(BasicTest):
 
         # Create an answer and retrieve back, compare the id
         answer = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                1, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         answer_id = answer.id
         retrieved_answer = answer_operations.get_answer_by_id(answer_id)
@@ -102,11 +104,11 @@ class AnswerTest(BasicTest):
         user2 = user_operations.create_user(CLIENT_ID2)
 
         answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                1, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer2 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                1, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer3 = answer_operations.create_answer(user2.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                1, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         retrieved_answers = answer_operations.get_answers_by_user(user1.id)
         assert len(retrieved_answers)==2
@@ -133,11 +135,11 @@ class AnswerTest(BasicTest):
         location2 = location_operations.create_location(FACTORY_ID2)
         user1 = user_operations.create_user(CLIENT_ID)
 
-        answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, False,
+        answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        answer2 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, False,
+        answer2 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        answer3 = answer_operations.create_answer(user1.id, location2.id, 2000, 2010, "", 1, 1, False,
+        answer3 = answer_operations.create_answer(user1.id, location2.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         retrieved_answers = answer_operations.get_answers_by_location(location1.id)
@@ -169,13 +171,13 @@ class AnswerTest(BasicTest):
         user2 = user_operations.create_user(CLIENT_ID2)
 
         # Create 4 answers for the combination of users/locations
-        answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, False,
+        answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        answer2 = answer_operations.create_answer(user1.id, location2.id, 2000, 2010, "", 1, 1, False,
+        answer2 = answer_operations.create_answer(user1.id, location2.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        answer3 = answer_operations.create_answer(user2.id, location1.id, 2000, 2010, "", 1, 1, False,
+        answer3 = answer_operations.create_answer(user2.id, location1.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        answer4 = answer_operations.create_answer(user2.id, location2.id, 2000, 2010, "", 1, 1, False,
+        answer4 = answer_operations.create_answer(user2.id, location2.id, 2000, 2010, "", 1, 1, 1,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         # Only one should be retrieved
@@ -195,6 +197,9 @@ class AnswerTest(BasicTest):
         FACTORY_ID = "aaa"
         FACTORY_ID2 = "bbb"
         CLIENT_ID = "kkk"
+        IS_GOLD_STANDARD = 0
+        PASS_GOLD_TEST = 1
+        FAIL_GOLD_TEST = 2
         BBOX_LEFT_TOP_LAT = 0.5
         BBOX_LEFT_TOP_LNG = 0.6
         BBOX_BOTTOM_RIGHT_LAT = 0.7
@@ -207,15 +212,15 @@ class AnswerTest(BasicTest):
 
         # Create 4 non-golden and 1 golden answer
         answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer2 = answer_operations.create_answer(user1.id, location2.id, 2000, 2010, "", 1, 1,
-                True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                IS_GOLD_STANDARD, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer3 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer4 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                FAIL_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer5 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         user_answer_count = answer_operations.get_answer_count()
         assert(user_answer_count == 4)
@@ -225,8 +230,10 @@ class AnswerTest(BasicTest):
         Create 4 answers. Only 1 of them is gold answer which belongs to the target location.
         Get gold answer for the target location. Pass if the expected answer successfully retrieved.
         """
+        IS_GOLD_STANDARD = 0
+        PASS_GOLD_TEST = 1
+        FAIL_GOLD_TEST = 2
         FACTORY_ID = "aaa"
-        FACTORY_ID2 = "bbb"
         CLIENT_ID = "kkk"
         CLIENT_ID_ADMIN = "admin"
         BBOX_LEFT_TOP_LAT = 0.5
@@ -240,53 +247,56 @@ class AnswerTest(BasicTest):
         user1 = user_operations.create_user(CLIENT_ID)
         user_admin = user_operations.create_user(CLIENT_ID_ADMIN)
         answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer2 = answer_operations.create_answer(user1.id, location2.id, 2000, 2010, "", 1, 1,
-                False, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                FAIL_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer3 = answer_operations.create_answer(user_admin.id, location1.id, 2000, 2010, "", 1, 1,
-                True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                IS_GOLD_STANDARD, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer4 = answer_operations.create_answer(user_admin.id, location2.id, 2000, 2010, "", 1, 1,
-                True, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+                IS_GOLD_STANDARD, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         my_answer = answer_operations.get_gold_answer_by_location(location2.id)
 
         assert(my_answer is not None)
         assert(my_answer.user_id == user_admin.id)
         assert(my_answer.location_id == location2.id)
-        assert(my_answer.is_gold_standard == True)
+        assert(my_answer.gold_standard_status == IS_GOLD_STANDARD)
 
-    def test_check_answer_correctness(self):
+    def test_check_answer_quality(self):
         """
         User admin create 1 gold standard, A_gold.
-        User 1 creates A1, which pass the quality test with A_gold. Pass if the result is 0.
-        User 1 creates A2, which has different expansion result with A_gold. Pass if the result is 1.
-        User 1 creates A3, which have no gold standard to the location. Pass if the result is 2.
+        User 1 creates A1, which pass the quality test with A_gold. Pass if the result is 1.
+        User 1 creates A2, which has different expansion result with A_gold. Pass if the result is 2.
+        User 1 creates A3, which have no gold standard to the location. Pass if the result is 0.
         """
+        IS_GOLD_STANDARD = 0
+        PASS_GOLD_TEST = 1
+        FAIL_GOLD_TEST = 2
+        BBOX_LEFT_TOP_LAT = 0.1
+        BBOX_LEFT_TOP_LNG = 0.2
+        BBOX_BOTTOM_RIGHT_LAT = 0.3
+        BBOX_BOTTOM_RIGHT_LNG = 0.4
         user1 = user_operations.create_user("123")
         user_admin = user_operations.create_user("ADMIN")
         l1 = location_operations.create_location("AAA")
         l2 = location_operations.create_location("BBB")
 
-        BBOX_LEFT_TOP_LAT = 0.1
-        BBOX_LEFT_TOP_LNG = 0.2
-        BBOX_BOTTOM_RIGHT_LAT = 0.3
-        BBOX_BOTTOM_RIGHT_LNG = 0.4
-
-        A_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, True,
+        A_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, IS_GOLD_STANDARD,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        A1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 1, False,
+        A1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 1, PASS_GOLD_TEST,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        A2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, False,
+        A2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
-        A3 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, False,
+        A3 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
-        result = answer_operations.check_answer_correctness(A1.location_id, A1.land_usage, A1.expansion)
-        assert(result==0)
-        result = answer_operations.check_answer_correctness(A2.location_id, A2.land_usage, A2.expansion)
+        result = answer_operations.check_answer_quality(A1.location_id, A1.land_usage, A1.expansion)
         assert(result==1)
-        result = answer_operations.check_answer_correctness(A3.location_id, A3.land_usage, A3.expansion)
+        result = answer_operations.check_answer_quality(A2.location_id, A2.land_usage, A2.expansion)
         assert(result==2)
+        result = answer_operations.check_answer_quality(A3.location_id, A3.land_usage, A3.expansion)
+        assert(result==0)
+
 
 
 if __name__ == "__main__":

@@ -2,16 +2,16 @@
 
 import datetime
 import random
-
 from sqlalchemy.sql.expression import null, true
 from sqlalchemy import func
+from sqlalchemy import or_
 from models.model import db
 from models.model import Location
 from models.model import Answer
 from models.model import User
 from models.model_operations.user_operations import get_user_by_id
-from models.model_operations.answer_operations import get_answers_by_user
-
+#from models.model_operations.answer_operations import get_answers_by_user
+from models.model_operations import answer_operations
 
 DEBUG = False
 def dbprint(*values: object):
@@ -166,7 +166,7 @@ def get_locations(user_id, size, gold_standard_size):
     Raises
     ------
     exception : Exception
-        When size and gold_standard_size are not integers (or < 0).
+        When size and gold_standard_size are not integers (or < 1).
     exception : Exception
         When gold standard does not exist.
     exception : Exception
@@ -180,10 +180,10 @@ def get_locations(user_id, size, gold_standard_size):
         raise Exception("The gold_standard_size shall be an integer")
     if not isinstance(size, int):
         raise Exception("The gold_standard_size shall be an integer")
-    if size < 0:
-        raise Exception("The size must be greater or equal to 0.")
-    if gold_standard_size < 0:
-        raise Exception("The gold_standard_size must be greater or equal to 0.")
+    if size < 1:
+        raise Exception("The size must be greater or equal to 1.")
+    if gold_standard_size < 1:
+        raise Exception("The gold_standard_size must be greater or equal to 1.")
     if gold_standard_size > size:
         raise Exception("The gold standard size cannot exceed size.")
 
@@ -192,11 +192,11 @@ def get_locations(user_id, size, gold_standard_size):
 
     # Get the user's answers
     target_user = get_user_by_id(user_id)
-    user_answers = get_answers_by_user(target_user.id)
+    user_answers = answer_operations.get_answers_by_user(target_user.id)
     user_answered_location_id_list = [answer.location_id for answer in user_answers]
 
     # Get the locations which have gold answers
-    gold_answers_filter = Answer.query.filter(Answer.is_gold_standard)
+    gold_answers_filter = Answer.query.filter(Answer.gold_standard_status==0)
     gold_location_id_list = [loc.location_id for loc in gold_answers_filter.distinct(Answer.location_id).all()]
 
     if len(gold_location_id_list) == 0:
@@ -207,23 +207,23 @@ def get_locations(user_id, size, gold_standard_size):
                 gold_standard_size, len(gold_location_id_list))
         raise Exception(err_msg)
 
-    # Get the locations which have been answered by the user
-    # TODO: need to select the locations where the Location.done_at is None (have not been identified)
-    user_identified_location_filter = Location.query.filter(Location.id.in_(user_answered_location_id_list))
-    user_identified_locations = [loc.id for loc in user_identified_location_filter.all()]
+    # Get the locations which have been answered by the user, or already done.
+    ex_location_filter = Location.query.filter(or_(Location.id.in_(user_answered_location_id_list), Location.done_at != None))
+    ex_location_id_list = [loc.id for loc in ex_location_filter.all()]
 
+    # Get locations which have gold standards
     gold_location_filter = Location.query.filter(Location.id.in_(gold_location_id_list))
 
-    # Get to-be-excluded location ids, which are not either with gold answers or identified by the user before
-    if len(user_identified_locations) > 0:
-        exclude_location_id_list = gold_location_id_list + user_identified_locations
+    # Get to-be-excluded location ids, which are not either: 1. with gold answers 2. identified by the user before 3. Already labled done
+    if len(ex_location_id_list) > 0:
+        exclude_location_id_list = gold_location_id_list + ex_location_id_list
     else:
         exclude_location_id_list = gold_location_id_list
 
-    non_gold_locations_filter = Location.query.filter(Location.id.not_in(exclude_location_id_list))
+    wait_test_locations_filter = Location.query.filter(Location.id.not_in(exclude_location_id_list))
 
     sel_gold_location_list = []
-    sel_non_gold_location_list = []
+    sel_wait_test_locations_list = []
 
     # Randomly sort and select the first locations which has been provideded gold answers
     if gold_standard_size > 0:
@@ -234,12 +234,12 @@ def get_locations(user_id, size, gold_standard_size):
 
     # Randomly sort and select the first locations which has exclude user answered ones plus those with gold answers
     if size > gold_standard_size:
-        rand_none_gold_location_list = non_gold_locations_filter.order_by(func.random()).all()
-        sel_non_gold_location_list = rand_none_gold_location_list[0:(size - gold_standard_size)]
-        dbprint("sel_non_gold_location_list : ", sel_non_gold_location_list)
+        wait_test_locations_list = wait_test_locations_filter.order_by(func.random()).all()
+        sel_wait_test_locations_list = wait_test_locations_list[0:(size - gold_standard_size)]
+        dbprint("sel_wait_test_locations_list : ", sel_wait_test_locations_list)
 
     # Combine and shuffle the list
-    location_list = sel_non_gold_location_list
+    location_list = sel_wait_test_locations_list
     if len(sel_gold_location_list) > 0:
         location_list += sel_gold_location_list
         random.shuffle(location_list)
@@ -277,3 +277,91 @@ def get_location_count():
     """
     count = Location.query.count()
     return count
+
+
+def batch_process_answers(user_id, answers):
+    """
+    Process the answers returned by the front-end and write them into the database.
+
+    Parameters
+    ----------
+    answers : list
+        A list of answers provided by the front-end user.
+        Each answer should be a dictionary with the following structure:
+            {"timestamp": XXX,
+             "location_id": XXX,
+             "year_new": XXX,
+             "year_old": XXX,
+             "zoom_level": XXX,
+             "bbox_bottom_right_lat": XXX,
+             "bbox_bottom_right_lng": XXX,
+             "bbox_left_top_lng": XXX,
+             "bbox_left_top_lat": XXX,
+             "land_usage": XXX,
+             "source_url_root" : XXX,
+             "expansion": XXX}
+        The explanation of the parameters are in the answer table in the model.py file.
+
+    Raises
+    ------
+    exception : Exception
+        If "location_id" or "land_usage" or "expansion" not exist in the dictionary of an answer.
+    exception : Exception
+        When no gold standards are found.
+
+    Returns
+    ------
+    True if the gold standard test passes.
+    """
+    if answers is None:
+        raise Exception("Please provide answers.")    
+    if user_id is None:
+        raise Exception("Please provide user id.")    
+    if len(answers) < 2:
+        raise Exception("Not enough answers.")
+
+    gold_test_pass_status = 0
+    non_gold_answer_id_list = []
+
+    # The first parse is to check the gold standard test result. 
+    for idx in range(len(answers)):
+        if "location_id" not in answers[idx] or \
+            "land_usage" not in answers[idx] or \
+            "expansion" not in answers[idx]:
+            raise Exception("The answer format is not not correct.")    
+
+        # Check every answer if gold standard exists
+        status = answer_operations.check_answer_quality(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])            
+        if status == 0:
+            non_gold_answer_id_list.append(idx)
+        # status != 0, which means a gold standard exists. Assign gold_test_pass_status only once when an answer corresponding to gold answer found.
+        else:
+            if gold_test_pass_status == 0:
+                gold_test_pass_status = status
+                dbprint("{} gold_test_pass_status is {}".format(user_id, gold_test_pass_status))
+
+    # If no answer corresponding to gold standard found, there must be something wrong.
+    if(gold_test_pass_status == 0):
+        raise Exception("The answer set is not correct.")    
+
+    # If user passes gold standard test, check if locations from the answers need to be set done_at.
+    if gold_test_pass_status == 1:
+        for idx in non_gold_answer_id_list:
+            # Check if another gold answer candidate exists and matches to mark the location done.
+            result = answer_operations.check_gold_candidate_status(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
+            if result == True:
+                set_location_done(answers[idx]["location_id"], True)
+
+    # Second parse to submit all the answers.
+    for idx in range(len(answers)):
+        answer_operations.create_answer(user_id, answers[idx]["location_id"], 
+                        answers[idx]["year_old"], answers[idx]["year_new"], answers[idx]["source_url_root"], 
+                        answers[idx]["land_usage"], answers[idx]["expansion"], gold_test_pass_status,
+                        answers[idx]["bbox_left_top_lat"], answers[idx]["bbox_left_top_lng"], 
+                        answers[idx]["bbox_bottom_right_lat"], answers[idx]["bbox_bottom_right_lng"], answers[idx]["zoom_level"], 
+                        )
+
+    if gold_test_pass_status == 1:
+        return True
+    else:
+        return False

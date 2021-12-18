@@ -82,18 +82,20 @@ class LocationTest(BasicTest):
     def test_get_locations(self):
       """
         0. Test no location situation. Pass if assert raises.
-        1. Create several Answers which belong to 8 locations, only Loc#2 and Loc#3 have gold answers. Loc#6 never answered by anyone. Loc#7 and Loc#8 has been identified by user u2.
-        2. Get locations for user 2, size=5 and gold_standard_size=1 for 5 times. 
-        Pass if 5 locations are gotten not including Loc#7 or Loc#8, and only 1 of the 2 locations which have gold answers are gotten.
+        1. Create several Answers which belong to 8 locations, only Loc#2 and Loc#3 have gold answers. Loc#6 never answered by anyone. Loc#7 has been identified by user u2. Loc#8 is marked Done.
+        2. Randomly get locations for user 2, size=5 and gold_standard_size=1 for 10 times. 
+           Pass if 5 locations are gotten not including Loc#7 or Loc#8, and only 1 of the 2 locations which have gold answers are gotten.
         3. Test not enough gold standards. Pass if assert raises.
         4. Test not enough location. Pass if assert raises.
       """
+      IS_GOLD_STANDARD = 0
+      PASS_GOLD_TEST = 1
+      FAIL_GOLD_TEST = 2
 
-      
       u1 = user_operations.create_user("111")
       u2 = user_operations.create_user("222")
 
-      # Test for no location exists.
+      # Check for no location exist exception.
       with self.assertRaises(Exception) as context:
           locations = location_operations.get_locations(u2.id, 5, 1)
 
@@ -106,31 +108,33 @@ class LocationTest(BasicTest):
       l7 = location_operations.create_location("GGG")
       l8 = location_operations.create_location("GGG")
 
-      #only l2 and l3 has gold answers. l1, l4, l5, l6 doesn't.
-      answer_operations.create_answer(u1.id, l1.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      # Mark l8 done, so it shouldn't be gotten.
+      location_operations.set_location_done(l8.id, True)
 
-      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, True, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      #only l2 and l3 has gold answers. l1, l4, l5, l6 doesn't, so they will always be gotten.
+      answer_operations.create_answer(u1.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
 
-      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, True, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, IS_GOLD_STANDARD, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l2.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST, 0, 0, 0, 0, 0)
 
-      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, IS_GOLD_STANDARD, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l3.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST, 0, 0, 0, 0, 0)
 
-      answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l4.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST, 0, 0, 0, 0, 0)
+
+      answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
+      answer_operations.create_answer(u1.id, l5.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST, 0, 0, 0, 0, 0)
       
-      # user answered l7 and l8
-      answer_operations.create_answer(u2.id, l7.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
-      answer_operations.create_answer(u2.id, l8.id, 2000, 2010, "", 1, 1, False, 0, 0, 0, 0, 0)
+      # user answered l7, so it shouldn't be gotten.
+      answer_operations.create_answer(u2.id, l7.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST, 0, 0, 0, 0, 0)
 
 
-      # Test a common situation.
-      for i in range(5):
+      # Test a common scenario.
+      for i in range(10):
           locations = location_operations.get_locations(u2.id, 5, 1)
 
           assert len(locations)==5
@@ -138,15 +142,13 @@ class LocationTest(BasicTest):
           assert  l2 in locations or l3 in locations
           assert not (l7 in locations or l8 in locations)
 
-      # Check if exception raises : not enough gold standards
+      # Check if exception raises : not enough gold standards.
       with self.assertRaises(Exception) as context:
           locations = location_operations.get_locations(u2.id, 5, 3)
 
-      # Check if exception raises : not enough locations
+      # Check if exception raises : not enough locations.
       with self.assertRaises(Exception) as context:
           locations = location_operations.get_locations(u2.id, 7, 3)
-      
-
 
     def test_get_location_is_done_count(self):
         """
@@ -165,7 +167,6 @@ class LocationTest(BasicTest):
         count = location_operations.get_location_is_done_count()
         assert count == 3
     
-    
     def test_get_location_count(self):
         """
         1. Create 4 locations
@@ -178,6 +179,173 @@ class LocationTest(BasicTest):
         count = location_operations.get_location_count()
         assert count == 4
 
+    def test_batch_process_answers(self):
+        """
+        location #l1 has gold standard. 
+        user u1 passes the standard test, and submit answers to #l2 and #l3.
+        user u2 fails the standard test, only #l2 matches u1's answer.
+        user u3 passes the standard test, only #l2 matches u1's answer.
+        user u4 passes the standard test, only #l4 matches u1's answer.
+        Pass if location done_at correct after each user's answer submit, and individual_done_count correct.
+        """
+        IS_GOLD_STANDARD = 0
+        user1 = user_operations.create_user("123")
+        user2 = user_operations.create_user("456")
+        user3 = user_operations.create_user("789")
+        user_admin = user_operations.create_user("ADMIN")
+        l1 = location_operations.create_location("AAA")
+        l2 = location_operations.create_location("BBB")
+        l3 = location_operations.create_location("CCC")
+        
+        assert(l2.done_at==None)
+        # l1 has gold answer.
+        A_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 1, 1, IS_GOLD_STANDARD,
+                0, 0, 0, 0, 0)
+
+        user1_answers=[
+            {"location_id": l1.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+            {"location_id": l2.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+            {"location_id": l3.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+        ]
+        user2_answers=[
+            {"location_id": l1.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 0,
+             "expansion": 0,
+             "source_url_root": "xxx"},
+            {"location_id": l2.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+            {"location_id": l3.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 0,
+             "expansion": 0,
+             "source_url_root": "xxx"},
+        ]
+        user3_answers=[
+            {"location_id": l1.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+            {"location_id": l2.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+            {"location_id": l3.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 0,
+             "expansion": 0,
+             "source_url_root": "xxx"},
+        ]        
+
+        # User u1 passes the standard test, and submit answers to #l2 and #l3.
+        result = location_operations.batch_process_answers(user1.id, user1_answers)
+        assert(result==True)
+        assert(l2.done_at is None)
+        assert(l3.done_at is None)
+
+        # User u2 fails the standard test, only #l2 matches u1.
+        result = location_operations.batch_process_answers(user2.id, user2_answers)
+        assert(result==False)
+        assert(l2.done_at is None)
+        assert(l3.done_at is None)
+
+        # User u3 passes the standard test, only #l2 matches u1. #l2 Done criteria reaches.
+        result = location_operations.batch_process_answers(user3.id, user3_answers)
+        assert(result==True)
+        assert(l2.done_at is not None)
+        assert(l3.done_at is None)
+
+        loc_count = user_operations.get_user_done_location_count(user2.id)
+        assert(loc_count == len(user2_answers))
 
 if __name__ == "__main__":
     unittest.main()

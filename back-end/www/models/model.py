@@ -105,8 +105,11 @@ class Answer(db.Model):
         0 means unknown.
         1 means no new expansion.
         2 means yes (there is expansion).
-    is_gold_standard : bool
-        If it is a golden standard answer provided by admnin.
+    gold_standard_status : int
+        The golden status of the answer.
+        0 meas golden standard provided by admin.
+        1 means because the user passes the golden test, the answer may be good quality.
+        2 means because the user failed the golden test, the answer may not be good quality.
     bbox_left_top_lat : float
         The latitude of the top-left corner of the bounding box for displaying the focus.
     bbox_left_top_lng : float
@@ -130,11 +133,9 @@ class Answer(db.Model):
     source_url_root = db.Column(db.String, nullable=False)
 
     # User answers
-    # TODO: delete the is_gold_standard column (also please update the docstring)
-    # TODO: add the gold_standard_status column (also please update the docstring)
     land_usage = db.Column(db.Integer, nullable=False)
     expansion = db.Column(db.Integer, nullable=False)
-    is_gold_standard = db.Column(db.Boolean, nullable=False)
+    gold_standard_status = db.Column(db.Integer, nullable=False)
     bbox_left_top_lat = db.Column(db.Float, default=0)
     bbox_left_top_lng = db.Column(db.Float, default=0)
     bbox_bottom_right_lat = db.Column(db.Float, default=0)
@@ -147,10 +148,10 @@ class Answer(db.Model):
 
     def __repr__(self):
         return "<id=%r user_id=%r location_id=%r timestamp=%r year_old=%r year_new=%r \
-                source_url_root=%r land_usage=%r expansion=%r is_gold_standard=%r \
+                source_url_root=%r land_usage=%r expansion=%r gold_standard_status=%r \
                 bbox_left_top_lat=%r bbox_left_top_lng=%r bbox_bottom_right_lat=%r \
                 bbox_bottom_right_lng=%r zoom_level=%r>" % (self.id,
                 self.user_id, self.location_id, self.timestamp, self.year_old,
                 self.year_new, self.source_url_root, self.land_usage, self.expansion,
-                self.is_gold_standard, self.bbox_left_top_lat, self.bbox_left_top_lng,
+                self.gold_standard_status, self.bbox_left_top_lat, self.bbox_left_top_lng,
                 self.bbox_bottom_right_lat, self.bbox_bottom_right_lng, self.zoom_level)
