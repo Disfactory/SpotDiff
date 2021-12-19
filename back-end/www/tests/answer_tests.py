@@ -298,6 +298,5 @@ class AnswerTest(BasicTest):
         assert(result==0)
 
 
-
 if __name__ == "__main__":
     unittest.main()
