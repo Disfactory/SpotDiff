@@ -1,10 +1,7 @@
 """Database model for the application."""
-
-import enum
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import func
 from sqlalchemy import MetaData
-
 
 # Set the naming convention for database columns
 convention = {
@@ -17,7 +14,6 @@ convention = {
 
 # Initalize app with database
 db = SQLAlchemy(metadata=MetaData(naming_convention=convention))
-
 
 class User(db.Model):
     """

@@ -1,7 +1,7 @@
 """Functions to operate the location table."""
-
 from models.model import db
 from models.model import Answer
+
 
 def create_answer(user_id, location_id, year_old, year_new,
         source_url_root, land_usage, expansion, gold_standard_status,
@@ -296,3 +296,91 @@ def is_answer_reliable(location_id, land_usage, expansion):
 
     return False
 
+
+def batch_process_answers(user_id, answers):
+    """
+    Process the answers returned by the front-end and write them into the database.
+
+    Parameters
+    ----------
+    answers : list
+        A list of answers provided by the front-end user.
+        Each answer should be a dictionary with the following structure:
+            {"timestamp": XXX,
+             "location_id": XXX,
+             "year_new": XXX,
+             "year_old": XXX,
+             "zoom_level": XXX,
+             "bbox_bottom_right_lat": XXX,
+             "bbox_bottom_right_lng": XXX,
+             "bbox_left_top_lng": XXX,
+             "bbox_left_top_lat": XXX,
+             "land_usage": XXX,
+             "source_url_root" : XXX,
+             "expansion": XXX}
+        The explanation of the parameters are in the answer table in the model.py file.
+
+    Raises
+    ------
+    exception : Exception
+        If "location_id" or "land_usage" or "expansion" not exist in the dictionary of an answer.
+    exception : Exception
+        When no gold standards are found.
+
+    Returns
+    ------
+    True if the gold standard test passes.
+    """
+    if answers is None:
+        raise Exception("Please provide answers.")    
+    if user_id is None:
+        raise Exception("Please provide user id.")    
+    if len(answers) < 2:
+        raise Exception("Not enough answers.")
+
+    from models.model_operations.location_operations import set_location_done
+
+    gold_test_pass_status = 0
+    non_gold_answer_id_list = []
+
+    # The first parse is to check the gold standard test result. 
+    for idx in range(len(answers)):
+        if "location_id" not in answers[idx] or \
+            "land_usage" not in answers[idx] or \
+            "expansion" not in answers[idx]:
+            raise Exception("The answer format is not not correct.")    
+
+        # Check every answer if gold standard exists
+        status = exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])            
+        if status == 0:
+            non_gold_answer_id_list.append(idx)
+        # status != 0, which means a gold standard exists. Assign gold_test_pass_status only once when an answer corresponding to gold answer found.
+        else:
+            if gold_test_pass_status == 0:
+                gold_test_pass_status = status
+
+    # If no answer corresponding to gold standard found, there must be something wrong.
+    if(gold_test_pass_status == 0):
+        raise Exception("The answer set is not correct.")    
+
+    # If user passes gold standard test, check if locations from the answers need to be set done_at.
+    if gold_test_pass_status == 1:
+        for idx in non_gold_answer_id_list:
+            # Check if another good answer candidate exists and matches to mark the location done.
+            result = is_answer_reliable(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
+            if result == True:
+                set_location_done(answers[idx]["location_id"], True)
+
+    # Second parse to submit all the answers.
+    for idx in range(len(answers)):
+        create_answer(user_id, answers[idx]["location_id"], 
+                        answers[idx]["year_old"], answers[idx]["year_new"], answers[idx]["source_url_root"], 
+                        answers[idx]["land_usage"], answers[idx]["expansion"], gold_test_pass_status,
+                        answers[idx]["bbox_left_top_lat"], answers[idx]["bbox_left_top_lng"], 
+                        answers[idx]["bbox_bottom_right_lat"], answers[idx]["bbox_bottom_right_lng"], answers[idx]["zoom_level"], 
+                        )
+
+    if gold_test_pass_status == 1:
+        return True
+    else:
+        return False
