@@ -10,7 +10,6 @@ from models.model import Location
 from models.model import Answer
 from models.model import User
 from models.model_operations.user_operations import get_user_by_id
-#from models.model_operations.answer_operations import get_answers_by_user
 from models.model_operations import answer_operations
 
 DEBUG = False
@@ -331,7 +330,7 @@ def batch_process_answers(user_id, answers):
             raise Exception("The answer format is not not correct.")    
 
         # Check every answer if gold standard exists
-        status = answer_operations.check_answer_quality(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])            
+        status = answer_operations.exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])            
         if status == 0:
             non_gold_answer_id_list.append(idx)
         # status != 0, which means a gold standard exists. Assign gold_test_pass_status only once when an answer corresponding to gold answer found.
@@ -347,8 +346,8 @@ def batch_process_answers(user_id, answers):
     # If user passes gold standard test, check if locations from the answers need to be set done_at.
     if gold_test_pass_status == 1:
         for idx in non_gold_answer_id_list:
-            # Check if another gold answer candidate exists and matches to mark the location done.
-            result = answer_operations.check_gold_candidate_status(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
+            # Check if another good answer candidate exists and matches to mark the location done.
+            result = answer_operations.is_answer_reliable(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
             if result == True:
                 set_location_done(answers[idx]["location_id"], True)
 

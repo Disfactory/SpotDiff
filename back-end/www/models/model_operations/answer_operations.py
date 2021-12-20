@@ -2,7 +2,6 @@
 
 from models.model import db
 from models.model import Answer
-#from models.model_operations.location_operations import set_location_done
 
 def create_answer(user_id, location_id, year_old, year_new,
         source_url_root, land_usage, expansion, gold_standard_status,
@@ -221,7 +220,7 @@ def remove_answer(answer_id):
     db.session.commit()
 
 
-def check_answer_quality(location_id, land_usage, expansion):
+def exam_gold_standard(location_id, land_usage, expansion):
     """
     Check the quality of the answer in comparison with the gold standard.
 
@@ -260,10 +259,11 @@ def check_answer_quality(location_id, land_usage, expansion):
     return result
 
 
-def check_gold_candidate_status(location_id, land_usage, expansion):
+def is_answer_reliable(location_id, land_usage, expansion):
     """
-    Pass the target gold candidate's information to heck if another gold candidate answer exists
-    which matches the land_usage and expansion
+    Before submit into the DB, pass the target "good" answer candidate's information to check if another "good" answer candidate exists, 
+    and have the same answer body. 
+    The "good answer candidate" means the user passes the gold standard test when submitting it.
 
     Parameters
     ----------
@@ -280,16 +280,16 @@ def check_gold_candidate_status(location_id, land_usage, expansion):
     ------
     bool
         Result of the checking.
-        True : another gold candidate exists.
-        False : no other gold candidate exists.
+        True : Matches another good answer candiate.
+        False : No other good answer candidates exist or match.
     """
-    gold_answer_candidates = Answer.query.filter_by(gold_standard_status=1, location_id=location_id).all()
+    good_answer_candidates = Answer.query.filter_by(gold_standard_status=1, location_id=location_id).all()
 
     # If the gold candidate doesn't exist
-    if len(gold_answer_candidates) == 0:
+    if len(good_answer_candidates) == 0:
         return False
 
-    for answer in gold_answer_candidates:
+    for answer in good_answer_candidates:
         if answer.gold_standard_status == 1 and answer.land_usage == land_usage and \
         answer.expansion == expansion :
             return True

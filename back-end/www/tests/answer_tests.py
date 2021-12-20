@@ -262,7 +262,7 @@ class AnswerTest(BasicTest):
         assert(my_answer.location_id == location2.id)
         assert(my_answer.gold_standard_status == IS_GOLD_STANDARD)
 
-    def test_check_answer_quality(self):
+    def test_exam_gold_standard(self):
         """
         User admin create 1 gold standard, A_gold.
         User 1 creates A1, which pass the quality test with A_gold. Pass if the result is 1.
@@ -290,12 +290,49 @@ class AnswerTest(BasicTest):
         A3 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST,
                 BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
-        result = answer_operations.check_answer_quality(A1.location_id, A1.land_usage, A1.expansion)
+        result = answer_operations.exam_gold_standard(A1.location_id, A1.land_usage, A1.expansion)
         assert(result==1)
-        result = answer_operations.check_answer_quality(A2.location_id, A2.land_usage, A2.expansion)
+        result = answer_operations.exam_gold_standard(A2.location_id, A2.land_usage, A2.expansion)
         assert(result==2)
-        result = answer_operations.check_answer_quality(A3.location_id, A3.land_usage, A3.expansion)
+        result = answer_operations.exam_gold_standard(A3.location_id, A3.land_usage, A3.expansion)
         assert(result==0)
+
+    def test_is_answer_reliable(self):
+        """
+        u1 failed the gold standard, but still submit answer a1 to location #l1.
+        u2 passes the gold standard test, and submit the same result with u1. Fail if is_answer_reliable True.
+        u3 passes the gold standard test, but have different answer with u1 or u2. Fail if is_answer_reliable true.
+        u4 passes the gold standard test, and have the same result with u1 and u2. Fail if is_answer_reliable false.
+        """            
+        PASS_GOLD_TEST = 1
+        FAIL_GOLD_TEST = 2
+        user1 = user_operations.create_user("123")
+        user2 = user_operations.create_user("456")
+        user3 = user_operations.create_user("789")
+        user4 = user_operations.create_user("000")
+        l1 = location_operations.create_location("AAA")
+
+        # u1 failed the gold standard.
+        a1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1, FAIL_GOLD_TEST,
+                0, 0, 0, 0, 0)
+
+        # u2 pass the gold test.
+        result = answer_operations.is_answer_reliable(l1.id, 1, 1)
+        assert(result == False)  
+        a2 = answer_operations.create_answer(user2.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST,
+                0, 0, 0, 0, 0)
+
+        # u3 passes the gold test, but have different answer with u2.
+        result = answer_operations.is_answer_reliable(l1.id, 1, 0)
+        assert(result == False)  
+        a3 = answer_operations.create_answer(user3.id, l1.id, 2000, 2010, "", 1, 0, PASS_GOLD_TEST,
+                0, 0, 0, 0, 0)
+
+        # u4 passes the gold test, and have the same answer with u2.
+        result = answer_operations.is_answer_reliable(l1.id, 1, 1)
+        assert(result == True)  
+        a4 = answer_operations.create_answer(user4.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST,
+                0, 0, 0, 0, 0)
 
 
 if __name__ == "__main__":

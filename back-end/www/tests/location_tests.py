@@ -135,17 +135,17 @@ class LocationTest(BasicTest):
         for i in range(10):
             locations = location_operations.get_locations(u2.id, 5, 1)
 
-          assert len(locations)==5
-          assert not (l2 in locations and l3 in locations)
-          assert  l2 in locations or l3 in locations
-          assert not (l7 in locations or l8 in locations)
+        assert len(locations)==5
+        assert not (l2 in locations and l3 in locations)
+        assert  l2 in locations or l3 in locations
+        assert not (l7 in locations or l8 in locations)
 
-      # Check if exception raises : not enough gold standards.
-      with self.assertRaises(Exception) as context:
+        # Check if exception raises : not enough gold standards.
+        with self.assertRaises(Exception) as context:
           locations = location_operations.get_locations(u2.id, 5, 3)
 
-      # Check if exception raises : not enough locations.
-      with self.assertRaises(Exception) as context:
+        # Check if exception raises : not enough locations.
+        with self.assertRaises(Exception) as context:
           locations = location_operations.get_locations(u2.id, 7, 3)
 
     def test_get_location_is_done_count(self):
