@@ -2,7 +2,6 @@
 
 import datetime
 import random
-from sqlalchemy.sql.expression import null, true
 from sqlalchemy import func
 from sqlalchemy import or_
 from models.model import db
