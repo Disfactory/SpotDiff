@@ -303,7 +303,7 @@ class AnswerTest(BasicTest):
         u2 passes the gold standard test, and submit the same result with u1. Fail if is_answer_reliable True.
         u3 passes the gold standard test, but have different answer with u1 or u2. Fail if is_answer_reliable true.
         u4 passes the gold standard test, and have the same result with u1 and u2. Fail if is_answer_reliable false.
-        """            
+        """
         PASS_GOLD_TEST = 1
         FAIL_GOLD_TEST = 2
         user1 = user_operations.create_user("123")
@@ -318,19 +318,19 @@ class AnswerTest(BasicTest):
 
         # u2 pass the gold test.
         result = answer_operations.is_answer_reliable(l1.id, 1, 1)
-        assert(result == False)  
+        assert(result == False)
         a2 = answer_operations.create_answer(user2.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST,
                 0, 0, 0, 0, 0)
 
         # u3 passes the gold test, but have different answer with u2.
         result = answer_operations.is_answer_reliable(l1.id, 1, 0)
-        assert(result == False)  
+        assert(result == False)
         a3 = answer_operations.create_answer(user3.id, l1.id, 2000, 2010, "", 1, 0, PASS_GOLD_TEST,
                 0, 0, 0, 0, 0)
 
         # u4 passes the gold test, and have the same answer with u2.
         result = answer_operations.is_answer_reliable(l1.id, 1, 1)
-        assert(result == True)  
+        assert(result == True)
         a4 = answer_operations.create_answer(user4.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST,
                 0, 0, 0, 0, 0)
 
@@ -504,6 +504,7 @@ class AnswerTest(BasicTest):
 
         loc_count = user_operations.get_user_done_location_count(user2.id)
         assert(loc_count == len(user2_answers))
+
 
 if __name__ == "__main__":
     unittest.main()

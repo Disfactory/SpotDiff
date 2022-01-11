@@ -1,4 +1,5 @@
 """Functions to operate the location table."""
+
 import datetime
 import random
 from sqlalchemy import func
@@ -8,6 +9,7 @@ from models.model import Location
 from models.model import Answer
 from models.model_operations.user_operations import get_user_by_id
 from models.model_operations import answer_operations
+
 
 DEBUG = False
 def dbprint(*values: object):

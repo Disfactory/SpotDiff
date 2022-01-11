@@ -95,7 +95,7 @@ def get_answer_count():
     """
     answer_query = Answer.query.filter(Answer.gold_standard_status!=0)
     count = answer_query.count()
-    return count    
+    return count
 
 
 def get_gold_answer_count():
@@ -228,7 +228,7 @@ def exam_gold_standard(location_id, land_usage, expansion):
     ----------
     location_id : int
         ID of the location.
-    land_usage : int    
+    land_usage : int
         User's answer of judging if the land is a farm or has buildings.
         (check the answer table in model.py for the meaning of the values)
     expansion : int
@@ -261,15 +261,19 @@ def exam_gold_standard(location_id, land_usage, expansion):
 
 def is_answer_reliable(location_id, land_usage, expansion):
     """
-    Before submit into the DB, pass the target "good" answer candidate's information to check if another "good" answer candidate exists, 
-    and have the same answer body. 
+    Check if the answer to a location is reliable.
+
+    Before submitting the answer to the DB,
+    pass the target "good" answer candidate's information to check if another "good" answer candidate exists,
+    and have the same answer body.
+
     The "good answer candidate" means the user passes the gold standard test when submitting it.
 
     Parameters
     ----------
     location_id : int
         ID of the location.
-    land_usage : int    
+    land_usage : int
         User's answer of judging if the land is a farm or has buildings.
         (check the answer table in model.py for the meaning of the values)
     expansion : int
@@ -290,8 +294,7 @@ def is_answer_reliable(location_id, land_usage, expansion):
         return False
 
     for answer in good_answer_candidates:
-        if answer.gold_standard_status == 1 and answer.land_usage == land_usage and \
-        answer.expansion == expansion :
+        if answer.gold_standard_status == 1 and answer.land_usage == land_usage and answer.expansion == expansion:
             return True
 
     return False
@@ -329,12 +332,13 @@ def batch_process_answers(user_id, answers):
 
     Returns
     ------
-    True if the gold standard test passes.
+    bool
+        True if passing the gold standard test.
     """
     if answers is None:
-        raise Exception("Please provide answers.")    
+        raise Exception("Please provide answers.")
     if user_id is None:
-        raise Exception("Please provide user id.")    
+        raise Exception("Please provide user id.")
     if len(answers) < 2:
         raise Exception("Not enough answers.")
 
@@ -343,25 +347,23 @@ def batch_process_answers(user_id, answers):
     gold_test_pass_status = 0
     non_gold_answer_id_list = []
 
-    # The first parse is to check the gold standard test result. 
+    # The first parse is to check the gold standard test result.
     for idx in range(len(answers)):
-        if "location_id" not in answers[idx] or \
-            "land_usage" not in answers[idx] or \
-            "expansion" not in answers[idx]:
-            raise Exception("The answer format is not not correct.")    
-
-        # Check every answer if gold standard exists
-        status = exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])            
+        if "location_id" not in answers[idx] or "land_usage" not in answers[idx] or "expansion" not in answers[idx]:
+            raise Exception("The answer format is not not correct.")
+        # Check every answer to see if gold standard exists
+        status = exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
         if status == 0:
             non_gold_answer_id_list.append(idx)
-        # status != 0, which means a gold standard exists. Assign gold_test_pass_status only once when an answer corresponding to gold answer found.
         else:
+            # This condition means a gold standard exists.
+            # Assign gold_test_pass_status only once when an answer corresponding to a gold answer is found.
             if gold_test_pass_status == 0:
                 gold_test_pass_status = status
 
-    # If no answer corresponding to gold standard found, there must be something wrong.
-    if(gold_test_pass_status == 0):
-        raise Exception("The answer set is not correct.")    
+    # If no answer corresponding to the gold standard is found, something must be wrong.
+    if gold_test_pass_status == 0:
+        raise Exception("The answer set is not correct.")
 
     # If user passes gold standard test, check if locations from the answers need to be set done_at.
     if gold_test_pass_status == 1:
@@ -373,12 +375,12 @@ def batch_process_answers(user_id, answers):
 
     # Second parse to submit all the answers.
     for idx in range(len(answers)):
-        create_answer(user_id, answers[idx]["location_id"], 
-                        answers[idx]["year_old"], answers[idx]["year_new"], answers[idx]["source_url_root"], 
-                        answers[idx]["land_usage"], answers[idx]["expansion"], gold_test_pass_status,
-                        answers[idx]["bbox_left_top_lat"], answers[idx]["bbox_left_top_lng"], 
-                        answers[idx]["bbox_bottom_right_lat"], answers[idx]["bbox_bottom_right_lng"], answers[idx]["zoom_level"], 
-                        )
+        create_answer(user_id, answers[idx]["location_id"],
+                answers[idx]["year_old"], answers[idx]["year_new"], answers[idx]["source_url_root"],
+                answers[idx]["land_usage"], answers[idx]["expansion"], gold_test_pass_status,
+                answers[idx]["bbox_left_top_lat"], answers[idx]["bbox_left_top_lng"],
+                answers[idx]["bbox_bottom_right_lat"], answers[idx]["bbox_bottom_right_lng"],
+                answers[idx]["zoom_level"])
 
     if gold_test_pass_status == 1:
         return True
