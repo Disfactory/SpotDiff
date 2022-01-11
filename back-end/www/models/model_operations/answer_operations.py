@@ -243,6 +243,7 @@ def exam_gold_standard(location_id, land_usage, expansion):
         1 means passing the gold standard test.
         2 means failing the gold standard test.
     """
+    # gold_standard_status 0 means that the answer is a gold standard
     gold_answer = Answer.query.filter_by(gold_standard_status=0, location_id=location_id).first()
 
     # If the gold answer doesn't exist
@@ -287,6 +288,7 @@ def is_answer_reliable(location_id, land_usage, expansion):
         True : Matches another good answer candiate.
         False : No other good answer candidates exist or match.
     """
+    # gold_standard_status 1 means that the answer passed the gold standard data quality test
     good_answer_candidates = Answer.query.filter_by(gold_standard_status=1, location_id=location_id).all()
 
     # If the gold candidate doesn't exist

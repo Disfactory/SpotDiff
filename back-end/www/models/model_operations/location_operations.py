@@ -194,6 +194,7 @@ def get_locations(user_id, size, gold_standard_size):
     user_answered_location_id_list = [answer.location_id for answer in user_answers]
 
     # Get the locations which have gold answers
+    # gold_standard_status 0 means that the answer is a gold standard
     gold_answers_filter = Answer.query.filter(Answer.gold_standard_status==0)
     gold_location_id_list = [loc.location_id for loc in gold_answers_filter.distinct(Answer.location_id).all()]
 
