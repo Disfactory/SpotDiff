@@ -5,8 +5,8 @@ from models.model import Answer
 
 def create_answer(user_id, location_id, year_old, year_new,
         source_url_root, land_usage, expansion, gold_standard_status,
-        bbox_left_top_lat, bbox_left_top_lng, bbox_bottom_right_lat,
-        bbox_bottom_right_lng, zoom_level):
+        bbox_left_top_lat=0, bbox_left_top_lng=0, bbox_bottom_right_lat=0,
+        bbox_bottom_right_lng=0, zoom_level=0):
     """
     Create an answer reported by an user with a location.
 
