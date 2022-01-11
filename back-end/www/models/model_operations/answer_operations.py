@@ -262,13 +262,9 @@ def exam_gold_standard(location_id, land_usage, expansion):
 
 def is_answer_reliable(location_id, land_usage, expansion):
     """
-    Check if the answer to a location is reliable.
-
-    Before submitting the answer to the DB,
-    pass the target "good" answer candidate's information to check if another "good" answer candidate exists,
-    and have the same answer body.
-
-    The "good answer candidate" means the user passes the gold standard test when submitting it.
+    Before submitting to DB, we judge if an answer reliable to set the location done if :
+    1. The user passes the gold standard test
+    2. Another user passes the gold standard test, and submitted the same answer as it. 
 
     Parameters
     ----------
@@ -288,18 +284,14 @@ def is_answer_reliable(location_id, land_usage, expansion):
         True : Matches another good answer candiate.
         False : No other good answer candidates exist or match.
     """
-    # gold_standard_status 1 means that the answer passed the gold standard data quality test
-    good_answer_candidates = Answer.query.filter_by(gold_standard_status=1, location_id=location_id).all()
+    # If another user passed the gold standard quality test, and submitted an answer to the same location.
+    good_answer_candidates = Answer.query.filter_by(gold_standard_status=1, location_id=location_id, land_usage=land_usage, expansion=expansion).all()
 
-    # If the gold candidate doesn't exist
+    # If the good answer candidate doesn't exist
     if len(good_answer_candidates) == 0:
         return False
-
-    for answer in good_answer_candidates:
-        if answer.gold_standard_status == 1 and answer.land_usage == land_usage and answer.expansion == expansion:
-            return True
-
-    return False
+    else:
+        return True        
 
 
 def batch_process_answers(user_id, answers):
