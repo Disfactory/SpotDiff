@@ -338,7 +338,12 @@ def batch_process_answers(user_id, answers):
 
     from models.model_operations.location_operations import set_location_done
 
-    gold_test_pass_status = 0
+    #gold_test_pass_status:
+    #  none: if the user's answer set doesn't include a gold standard test, which is not reasonable
+    #  1: if the user passes the gold standard test
+    #  2: if the user failed the gold standard test
+
+    gold_test_pass_status = None
     non_gold_answer_id_list = []
 
     # The first parse is to check the gold standard test result.
@@ -352,11 +357,11 @@ def batch_process_answers(user_id, answers):
         else:
             # This condition means a gold standard exists.
             # Assign gold_test_pass_status only once when an answer corresponding to a gold answer is found.
-            if gold_test_pass_status == 0:
+            if gold_test_pass_status is None:
                 gold_test_pass_status = status
 
     # If no answer corresponding to the gold standard is found, something must be wrong.
-    if gold_test_pass_status == 0:
+    if gold_test_pass_status is None:
         raise Exception("The answer set is not correct.")
 
     # If user passes gold standard test, check if locations from the answers need to be set done_at.
