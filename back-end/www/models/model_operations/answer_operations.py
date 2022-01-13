@@ -262,9 +262,9 @@ def exam_gold_standard(location_id, land_usage, expansion):
 
 def is_answer_reliable(location_id, land_usage, expansion):
     """
-    Before submitting to DB, we judge if an answer reliable to set the location done if :
+    Before submitting to DB, we judge if an answer reliable and set the location done if:
     1. The user passes the gold standard test
-    2. Another user passes the gold standard test, and submitted the same answer as it. 
+    2. Another user passes the gold standard test, and submitted the same answer as it.
 
     Parameters
     ----------
@@ -291,7 +291,7 @@ def is_answer_reliable(location_id, land_usage, expansion):
     if len(good_answer_candidates) == 0:
         return False
     else:
-        return True        
+        return True
 
 
 def batch_process_answers(user_id, answers):
@@ -338,10 +338,10 @@ def batch_process_answers(user_id, answers):
 
     from models.model_operations.location_operations import set_location_done
 
-    #gold_test_pass_status:
-    #  none: if the user's answer set doesn't include a gold standard test, which is not reasonable
-    #  1: if the user passes the gold standard test
-    #  2: if the user failed the gold standard test
+    # The following explains the gold_test_pass_status:
+    # - None means if the user's answer set doesn't include a gold standard test, which is not reasonable
+    # - 1 means if the user passes the gold standard test
+    # - 2 means if the user failed the gold standard test
 
     gold_test_pass_status = None
     non_gold_answer_id_list = []
