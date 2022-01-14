@@ -1,5 +1,7 @@
 from basic_tests import BasicTest
 from models.model_operations import user_operations
+from models.model_operations import location_operations
+from models.model_operations import answer_operations
 from models.model import db
 import unittest
 
@@ -33,6 +35,81 @@ class UserTest(BasicTest):
         user_id = user.id
         user_operations.remove_user(user.id)
         assert user not in db.session
+
+    def test_get_all_users(self):
+        client_id = "123"
+        user1 = user_operations.create_user(client_id)
+        assert user1 in db.session
+        client_id = "456"
+        user2 = user_operations.create_user(client_id)
+        assert user2 in db.session
+        users = user_operations.get_all_users()
+        assert(len(users) == 2)
+
+    def test_get_user_count(self):
+        client_id = "123"
+        user1 = user_operations.create_user(client_id)
+        assert user1 in db.session
+        client_id2 = "456"
+        user2 = user_operations.create_user(client_id2)
+        assert user2 in db.session
+        count = user_operations.get_user_count()
+        assert(count == 2)
+
+    def test_get_user_done_location_count(self):
+        """
+        User 1 creates 3 answers to l1, 2 answers to l2. user_admin creates 1 gold answer to l1 and l3.
+        Check the return value of get_user_done_location_count for user 1 during the process.
+        Pass if 0 at the beginning, 1 after answer for l1, and 2 returns after answer for l2.
+        """
+        IS_GOLD_STANDARD = 0
+        PASS_GOLD_TEST = 1
+        FAIL_GOLD_TEST = 2
+        BBOX_LEFT_TOP_LAT = 0.1
+        BBOX_LEFT_TOP_LNG = 0.2
+        BBOX_BOTTOM_RIGHT_LAT = 0.3
+        BBOX_BOTTOM_RIGHT_LNG = 0.4
+
+        client_id = "123"
+        user1 = user_operations.create_user(client_id)
+
+        done_loc_count = user_operations.get_user_done_location_count(user1.id)
+        assert(done_loc_count == 0)
+
+        user_admin = user_operations.create_user("ADMIN")
+        l1 = location_operations.create_location("AAA")
+        l2 = location_operations.create_location("BBB")
+        l3 = location_operations.create_location("CCC")
+
+        # Answers for l1, including one gold answer
+        answer1 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1,
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer2 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 1, 1,
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer3 = answer_operations.create_answer(user1.id, l1.id, 2000, 2010, "", 0, 0,
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+
+        done_loc_count = user_operations.get_user_done_location_count(user1.id)
+        assert(done_loc_count == 1)
+
+        answer4 = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 0,
+                IS_GOLD_STANDARD, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+
+        done_loc_count = user_operations.get_user_done_location_count(user1.id)
+        assert(done_loc_count == 1)
+
+        # Answers for l2
+        answer4 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 1,
+                FAIL_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer5 = answer_operations.create_answer(user1.id, l2.id, 2000, 2010, "", 1, 0,
+                FAIL_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+
+        # Gold answer for l3
+        answer6 = answer_operations.create_answer(user_admin.id, l3.id, 2000, 2010, "", 0, 0,
+                IS_GOLD_STANDARD, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+
+        done_loc_count = user_operations.get_user_done_location_count(user1.id)
+        assert(done_loc_count == 2)
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ class BasicTest(TestCase):
         app.config.from_object("config.config.TestingConfig")
         db.init_app(app)
 
-        # pass in test configuration
+        # Pass in test configuration
         return app
 
     def tearDown(self):

@@ -1,5 +1,4 @@
 """Functions to operate the user table."""
-
 from models.model import db
 from models.model import User
 
@@ -51,8 +50,8 @@ def get_user_by_client_id(client_id):
 
     Parameters
     ----------
-    client_id : int
-        ID of the user.
+    client_id : str
+        ID provided by an external authentication service.
 
     Returns
     -------
@@ -73,7 +72,6 @@ def get_all_users():
     users : list of User
         The list of retrieved user objects.
     """
-    # TODO: need a testing case
     users = User.query.all()
 
     return users
@@ -129,3 +127,49 @@ def remove_user(user_id):
 
     db.session.delete(user)
     db.session.commit()
+
+
+def get_user_count():
+    """
+    Get total user count.
+
+    Returns
+    -------
+    count : int
+        Number of total users.
+    """
+    count = User.query.count()
+
+    return count
+
+
+def get_user_done_location_count(user_id):
+    """
+    Get the location count that the user has identified.
+
+    Parameters
+    ----------
+    user_id : int
+        ID of the user.
+
+    Raises
+    ------
+    exception : Exception
+        When no user is found.
+
+    Returns
+    -------
+    count : int
+        Number of locations that the user identified.
+    """
+    user = get_user_by_id(user_id)
+
+    if user is None:
+        raise Exception("Cannot find the user.")
+
+    if user.answers is None:
+        return 0
+
+    loc_count = len(set([answer.location_id for answer in user.answers]))
+
+    return loc_count
