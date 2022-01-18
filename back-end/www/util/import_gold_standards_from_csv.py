@@ -39,7 +39,10 @@ app.app_context().push()
 
 admin_id = 0
 ans_count = 0
-u1 = user_operations.create_user("1117")
+u1 = user_operations.get_user_by_client_id("admin")
+if u1 is None:
+    print("Create admin.")
+    u1 = user_operations.create_user("admin")
 # open file for reading
 with open(CSV_FILE_NAME) as csvDataFile:
 
