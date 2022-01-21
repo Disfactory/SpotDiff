@@ -1,15 +1,13 @@
 """The controller for https://[PATH]/location/"""
 
-import time
-import uuid
 from flask import Blueprint
 from flask import request
 from flask import jsonify
-from util.util import decode_user_token
+import jwt
+from util.util import decode_jwt
 from config.config import config
 from util.util import InvalidUsage
 from util.util import handle_invalid_usage
-from util.util import encode_jwt
 from util.util import try_wrap_response
 from config.config import config
 from models.model_operations.location_operations import get_locations
@@ -17,14 +15,15 @@ from models.schema import locations_schema
 
 bp = Blueprint("location_controller", __name__)
 
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 def location():
     """
     The function for the front-end to retrieve random location data by specifying amount.
 
     Sample command to test:
-    $ curl -d '{"user_token":"xxxxx", "size":"5", "gold_standard_size":"1"}' -H "Content-Type: application/json" -X GET http://localhost:5000/location/
-
+    $ curl -H "Content-Type: application/json" -X GET http://localhost:5000/location?size=5\&gold_standard_size=1\&user_token=xxxx
+    $ https://localhost:5000/location?&size=5&gold_standard_size=1?user_token=xxxxx
+    
     Parameters
     ----------
     user_token : str
@@ -46,41 +45,35 @@ def location():
         factory_id : string
             The uuid imported from disfactory factory table.
     """    
-    if request.method == "GET":
-        request_json = request.get_json()
+    size = request.args.get("size")
+    gold_standard_size = request.args.get("gold_standard_size")
+    user_token = request.args.get("user_token")
+    if size is None:
+        e = InvalidUsage("Please provide size, the number of locations you want to get.")
+        return handle_invalid_usage(e)
+    if gold_standard_size is None:                
+        e = InvalidUsage("Please provide gold_standard_size, the number of gold standards.")
+        return handle_invalid_usage(e)
+    if user_token is None:
+        e = InvalidUsage("Please provide user_token.")
+        return handle_invalid_usage(e)
 
-        size = 0
-        gold_standard_size = 0
+    try:
+        user_json = decode_jwt(user_token, config.JWT_PRIVATE_KEY)
+    except jwt.InvalidSignatureError as ex:
+        e = InvalidUsage(ex.args[0], status_code=401)
+        return (handle_invalid_usage(e), None)
+    except Exception as ex:
+        e = InvalidUsage(ex.args[0], status_code=401)
+        return (handle_invalid_usage(e), None)
 
-        if request_json is None:
-            e = InvalidUsage("Please provide correct parameters.", status_code=400)
-            return handle_invalid_usage(e)
+    user_id = user_json["user_id"]
+    if user_id is None:
+        e = InvalidUsage("Cannot find user_id")
+        return handle_invalid_usage(e)
 
-        # Get user id from user_token.
-        error, user_json = decode_user_token(request_json, config.JWT_PRIVATE_KEY, check_if_admin=False)
-        if error is not None: return error
-
-        user_id = user_json["user_id"]
-
-        if user_id is None:
-            e = InvalidUsage("Please provide correct user token.", status_code=400)
-            return handle_invalid_usage(e) 
-
-        if "size" in request_json and "gold_standard_size" in request_json:
-            size = int(request_json["size"])
-            gold_standard_size = int(request_json["gold_standard_size"])
-        else:
-            e = InvalidUsage("Please provide query size. size: total size of locations. gold_standard_size: locations which contains gold standards.", status_code=400)
-            return handle_invalid_usage(e) 
-
-        no_size = size is None
-        no_gold_size = gold_standard_size is None
-
-        if no_size or no_gold_size:
-            e = InvalidUsage("Please provide query size. size: total size of locations. gold_standard_size: locations which contains gold standards.", status_code=400)
-            return handle_invalid_usage(e)            
-        else:
-            return try_get_locations(user_id, size, gold_standard_size)
+    
+    return try_get_locations(user_id, int(size), int(gold_standard_size))
 
 @try_wrap_response
 def try_get_locations(user_id, size, gold_standard_size):

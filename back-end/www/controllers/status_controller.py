@@ -3,23 +3,24 @@
 from flask import Blueprint
 from flask import request
 from flask import jsonify
+import jwt
 from util.util import InvalidUsage
 from util.util import handle_invalid_usage
-from util.util import decode_user_token
+from util.util import decode_jwt
 from config.config import config
 from models.model_operations.user_operations import get_user_done_location_count
 from models.model_operations.user_operations import get_user_count
 from models.model_operations.location_operations import get_location_is_done_count
 
 bp = Blueprint("status_controller", __name__)
-
-@bp.route("/", methods=["GET"])
+@bp.route("", methods=["GET"])
 def status():
     """
     The function for the front-end to retrieve status data.
 
     Sample command to test:
-    $ curl -d '{"user_token":"xxx"}' -H "Content-Type: application/json" -X GET http://localhost:5000/status/
+    $ curl -H "Content-Type: application/json" -X GET http://localhost:5000/status?user_token=xxxx
+    $ https://localhost:5000/status?user_token=xxxxx
 
     Parameters
     ----------
@@ -38,26 +39,26 @@ def status():
             The number of locations that have been labeled.
     """    
     if request.method == "GET":
-        request_json = request.get_json()
-
-        if request_json is None:
-            e = InvalidUsage("Please provide correct parameters.", status_code=400)
+        user_token = request.args.get("user_token")
+        if user_token is None:
+            e = InvalidUsage("Please provide user_token.")
             return handle_invalid_usage(e)
 
+    try:
+        user_json = decode_jwt(user_token, config.JWT_PRIVATE_KEY)
+    except jwt.InvalidSignatureError as ex:
+        e = InvalidUsage(ex.args[0], status_code=401)
+        return (handle_invalid_usage(e), None)
+    except Exception as ex:
+        e = InvalidUsage(ex.args[0], status_code=401)
+        return (handle_invalid_usage(e), None)
 
-        # Get user id from user_token.
-        error, user_json = decode_user_token(request_json, config.JWT_PRIVATE_KEY, check_if_admin=False)
-        if error is not None: return error
+    user_id = user_json["user_id"]
 
-        user_id = user_json["user_id"]
+    return_status = {"individual_done_count" : get_user_done_location_count(user_id), 
+                        "user_count" : get_user_count(), 
+                        "location_is_done_count" : get_location_is_done_count()}
 
-        if user_id is None:
-            e = InvalidUsage("Please provide correct user token.", status_code=400)
-            return handle_invalid_usage(e) 
+    return jsonify(return_status)
 
-        return_status = {"individual_done_count" : get_user_done_location_count(user_id), 
-                         "user_count" : get_user_count(), 
-                         "location_is_done_count" : get_location_is_done_count()}
-
-        return jsonify(return_status)
-
+ 
