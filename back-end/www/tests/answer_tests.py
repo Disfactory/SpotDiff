@@ -192,7 +192,7 @@ class AnswerTest(BasicTest):
     def test_get_answer_count(self):
         """
         Create 4 non-gold answers and 1 gold answer
-        Get answer count. Pass if the count matches 4.
+        Get answer count. Pass if the count matches 5.
         """
         FACTORY_ID = "aaa"
         FACTORY_ID2 = "bbb"
@@ -223,7 +223,7 @@ class AnswerTest(BasicTest):
                 PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         user_answer_count = answer_operations.get_answer_count()
-        assert(user_answer_count == 4)
+        assert(user_answer_count == 5)
 
     def test_get_gold_answer_by_location(self):
         """
@@ -504,7 +504,6 @@ class AnswerTest(BasicTest):
 
         loc_count = user_operations.get_user_done_location_count(user2.id)
         assert(loc_count == len(user2_answers))
-
 
 if __name__ == "__main__":
     unittest.main()
