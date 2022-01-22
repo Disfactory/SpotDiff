@@ -11,6 +11,7 @@ from config.config import config
 from models.model_operations.user_operations import get_user_done_location_count
 from models.model_operations.user_operations import get_user_count
 from models.model_operations.location_operations import get_location_is_done_count
+from models.model_operations.answer_operations import get_answer_count
 
 bp = Blueprint("status_controller", __name__)
 @bp.route("", methods=["GET"])
@@ -75,6 +76,7 @@ def status():
 
     return_status = {"individual_done_count" : user_done_count, 
                         "user_count" : user_count, 
+                        "answer_count" : get_answer_count(),
                         "location_is_done_count" : loc_done_count}
 
     return jsonify(return_status)
