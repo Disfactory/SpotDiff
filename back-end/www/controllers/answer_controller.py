@@ -7,8 +7,7 @@ from util.util import InvalidUsage
 from util.util import handle_invalid_usage
 from util.util import decode_user_token
 from config.config import config
-from models.model_operations.location_operations import batch_process_answers
-
+from models.model_operations.answer_operations import batch_process_answers
 
 bp = Blueprint("answer_controller", __name__)
 
@@ -19,13 +18,14 @@ def answer():
 
     Sample command to test:
 
-    $curl -d '{"user_token":"xx","data":[\
-    {"location_id":1, "year_new":2017, "year_old":2010, "source_url_root":\
-    "www.test.org", "is_gold_standard":false, "bbox_left_top_lat":0, "bbox_left_top_lng":0,\
-    "bbox_bottom_right_lat":0, "bbox_bottom_right_lng":0, "land_usage":1, "expansion":, "zoom_level":0}, \
-    {"location_id":8, "year_new":2017, "year_old":2010, "source_url_root":"www.test.org", \
-    "is_gold_standard":false, "bbox_left_top_lat":0, "bbox_left_top_lng":0,"bbox_bottom_right_lat":0,\
-     "bbox_bottom_right_lng":0, "land_usage":1, "expansion":1, "zoom_level":0}]}' -H "Content-Type: application/json"\
+    $ curl -d '{"user_token":"xxxx","data":[{"location_id":1, "year_new":2017, "year_old":2010, 
+    "source_url_root":"www.test.org", "is_gold_standard":false, "bbox_left_top_lat":24.0962704615941, 
+    "bbox_left_top_lng":"120.462878886353","bbox_bottom_right_lat":24.0962704615941, 
+    "bbox_bottom_right_lng":120.462878886353, "land_usage":1, "expansion":1, "zoom_level":0}, 
+    {"location_id":8, "year_new":2017, "year_old":2010, "source_url_root":"www.test.org", "is_gold_standard":false, 
+    "bbox_left_top_lat":24.0962704615941, "bbox_left_top_lng":"120.462878886353",
+    "bbox_bottom_right_lat":24.0962704615941, "bbox_bottom_right_lng":120.462878886353, 
+    "land_usage":1, "expansion":1, "zoom_level":0}]}' -H "Content-Type: application/json"
      -X POST http://localhost:5000/answer/
 
     Parameters
@@ -106,7 +106,11 @@ def answer():
             return handle_invalid_usage(e) 
 
         # Check all the answers from frontend to decide the next step.
-        pass_status = batch_process_answers(user_id, rj["data"])
+        try:
+            pass_status = batch_process_answers(user_id, rj["data"])
+        except Exception as errmsg:
+            e = InvalidUsage(repr(errmsg), status_code=400)
+            return handle_invalid_usage(e)
 
         if pass_status:
             return_status = {"Passed" : True}

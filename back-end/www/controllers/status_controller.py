@@ -55,9 +55,27 @@ def status():
 
     user_id = user_json["user_id"]
 
-    return_status = {"individual_done_count" : get_user_done_location_count(user_id), 
-                        "user_count" : get_user_count(), 
-                        "location_is_done_count" : get_location_is_done_count()}
+    try:
+        user_done_count = get_user_done_location_count(user_id)
+    except Exception as errmsg:
+        e = InvalidUsage(repr(errmsg), status_code=400)
+        return handle_invalid_usage(e)
+
+    try:
+        user_count = get_user_count()
+    except Exception as errmsg:
+        e = InvalidUsage(repr(errmsg), status_code=400)
+        return handle_invalid_usage(e)
+
+    try:
+        loc_done_count = get_location_is_done_count()
+    except Exception as errmsg:
+        e = InvalidUsage(repr(errmsg), status_code=400)
+        return handle_invalid_usage(e)
+
+    return_status = {"individual_done_count" : user_done_count, 
+                        "user_count" : user_count, 
+                        "location_is_done_count" : loc_done_count}
 
     return jsonify(return_status)
 

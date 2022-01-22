@@ -51,9 +51,32 @@ def location():
     if size is None:
         e = InvalidUsage("Please provide size, the number of locations you want to get.")
         return handle_invalid_usage(e)
+
+    try:
+        i = int(size)
+    except ValueError as ex:
+        e = InvalidUsage("size must be an integer.")
+        return handle_invalid_usage(e)
+    except Exception as ex: 
+        e = InvalidUsage("size must be an integer.")       
+        return handle_invalid_usage(e)
+    
+    if int(size) < 2:
+        e = InvalidUsage("The size must be greater or equal to 2.")
+        return handle_invalid_usage(e)
+
     if gold_standard_size is None:                
         e = InvalidUsage("Please provide gold_standard_size, the number of gold standards.")
         return handle_invalid_usage(e)
+    try:
+        i = int(gold_standard_size)
+    except ValueError as ex:
+        e = InvalidUsage("gold_standard_size must be an integer.")
+        return handle_invalid_usage(e)
+    except Exception as ex: 
+        e = InvalidUsage("gold_standard_size must be an integer.")       
+        return handle_invalid_usage(e)
+
     if user_token is None:
         e = InvalidUsage("Please provide user_token.")
         return handle_invalid_usage(e)
@@ -72,10 +95,13 @@ def location():
         e = InvalidUsage("Cannot find user_id")
         return handle_invalid_usage(e)
 
-    
     return try_get_locations(user_id, int(size), int(gold_standard_size))
 
 @try_wrap_response
 def try_get_locations(user_id, size, gold_standard_size):
-    data = get_locations(user_id, size, gold_standard_size)
+    try:
+        data = get_locations(user_id, size, gold_standard_size)
+    except Exception as errmsg:
+        e = InvalidUsage(repr(errmsg), status_code=400)
+        return handle_invalid_usage(e)
     return jsonify({"data": locations_schema.dump(data)})
