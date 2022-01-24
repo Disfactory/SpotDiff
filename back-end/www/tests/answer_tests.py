@@ -341,17 +341,20 @@ class AnswerTest(BasicTest):
         User u2 fails the standard test, only #l2 matches u1's answer.
         User u3 passes the standard test, only #l2 matches u1's answer.
         User u4 passes the standard test, only #l4 matches u1's answer.
-        Pass if location done_at correct after each user's answer submit, and individual_done_count correct.
+        User u5 submits an answer without source root.
+        Pass if location done_at correct after each user's answer submit, and individual_done_count correct, 
+        and u5's answer sends assertion.
         """
         IS_GOLD_STANDARD = 0
         user1 = user_operations.create_user("123")
         user2 = user_operations.create_user("456")
         user3 = user_operations.create_user("789")
+        user4 = user_operations.create_user("000")
         user_admin = user_operations.create_user("ADMIN")
         l1 = location_operations.create_location("AAA")
         l2 = location_operations.create_location("BBB")
         l3 = location_operations.create_location("CCC")
-
+        l4 = location_operations.create_location("DDD")
         assert(l2.done_at==None)
 
         # l1 has gold answer.
@@ -484,6 +487,48 @@ class AnswerTest(BasicTest):
              "source_url_root": "xxx"},
         ]
 
+        # missing "source_url_root"
+        user4_answers=[
+            {"location_id": l1.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1},
+            {"location_id": l4.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 1,
+             "expansion": 1,
+             "source_url_root": "xxx"},
+            {"location_id": l4.id,
+             "year_new": 2000,
+             "year_old": 1997,
+             "zoom_level": 0,
+             "left_top_lat": 0,
+             "left_top_lng": 0,
+             "bbox_left_top_lat": 0,
+             "bbox_left_top_lng": 0,
+             "bbox_bottom_right_lat": 0,
+             "bbox_bottom_right_lng": 0,
+             "land_usage": 0,
+             "expansion": 0,
+             "source_url_root": "xxx"},
+        ]
+
         # User u1 passes the standard test, and submit answers to #l2 and #l3.
         result = answer_operations.batch_process_answers(user1.id, user1_answers)
         assert(result==True)
@@ -504,6 +549,10 @@ class AnswerTest(BasicTest):
 
         loc_count = user_operations.get_user_done_location_count(user2.id)
         assert(loc_count == len(user2_answers))
+
+        # User u4 creates invalid answers, missing parameters
+        with self.assertRaises(Exception) as context:        
+            result = answer_operations.batch_process_answers(user4.id, user4_answers)
 
 if __name__ == "__main__":
     unittest.main()
