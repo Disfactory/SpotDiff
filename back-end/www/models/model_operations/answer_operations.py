@@ -347,9 +347,15 @@ def batch_process_answers(user_id, answers):
 
     # The first parse is to check the gold standard test result.
     for idx in range(len(answers)):
-        if ("location_id" not in answers[idx] or "land_usage" not in answers[idx] or "expansion" not in answers[idx] or 
-           "source_url_root" not in answers[idx]):
-            raise Exception("The answer format is not not correct.")
+        if "location_id" not in answers[idx]:
+            raise Exception("Missing location_id in answer {}.".format(idx) + 1)
+        if "land_usage" not in answers[idx]:
+            raise Exception("Missing land_usage in answer {}.".format(idx) + 1)
+        if "expansion" not in answers[idx]:
+            raise Exception("Missing expansion in answer {}.".format(idx) + 1)
+        if "source_url_root" not in answers[idx]:
+            raise Exception("Missing source_url_root in answer {}.".format(idx) + 1)
+            
         # Check every answer to see if gold standard exists
         status = exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
         if status == 0:
