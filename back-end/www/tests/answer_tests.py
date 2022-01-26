@@ -197,6 +197,7 @@ class AnswerTest(BasicTest):
         FACTORY_ID = "aaa"
         FACTORY_ID2 = "bbb"
         CLIENT_ID = "kkk"
+        CLIENT2_ID = "mmm"
         IS_GOLD_STANDARD = 0
         PASS_GOLD_TEST = 1
         FAIL_GOLD_TEST = 2
@@ -209,6 +210,7 @@ class AnswerTest(BasicTest):
         location1 = location_operations.create_location(FACTORY_ID)
         location2 = location_operations.create_location(FACTORY_ID2)
         user1 = user_operations.create_user(CLIENT_ID)
+        user2 = user_operations.create_user(CLIENT2_ID)
 
         # Create 4 non-golden and 1 golden answer
         answer1 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
@@ -221,9 +223,14 @@ class AnswerTest(BasicTest):
                 FAIL_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
         answer5 = answer_operations.create_answer(user1.id, location1.id, 2000, 2010, "", 1, 1,
                 PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
+        answer6 = answer_operations.create_answer(user2.id, location1.id, 2000, 2010, "", 1, 1,
+                PASS_GOLD_TEST, BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)
 
         user_answer_count = answer_operations.get_answer_count()
-        assert(user_answer_count == 5)
+        assert(user_answer_count == 6)
+
+        user_answer_count = answer_operations.get_answer_count(user2.id)
+        assert(user_answer_count == 1)
 
     def test_get_gold_answer_by_location(self):
         """

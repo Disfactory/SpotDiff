@@ -89,11 +89,14 @@ def create_answer(user_id, location_id, year_old, year_new,
     return answer
 
 
-def get_answer_count():
+def get_answer_count(user_id=None):
     """
     Get total number of answers.
     """
-    answer_query = Answer.query.filter()
+    if user_id is not None:
+        answer_query = Answer.query.filter(Answer.user_id==user_id)
+    else:        
+        answer_query = Answer.query.filter()
     count = answer_query.count()
     return count
 
