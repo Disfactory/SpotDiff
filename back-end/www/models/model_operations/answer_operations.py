@@ -358,7 +358,7 @@ def batch_process_answers(user_id, answers):
             raise Exception("Missing expansion in answer {}.".format(idx + 1))
         if "source_url_root" not in answers[idx]:
             raise Exception("Missing source_url_root in answer {}.".format(idx + 1))
-            
+
         # Check every answer to see if gold standard exists
         status = exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
         if status == 0:

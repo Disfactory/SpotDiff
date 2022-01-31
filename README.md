@@ -299,7 +299,7 @@ WARNING: this section is only for system administrators, not developers.
 Install [uwsgi](https://uwsgi-docs.readthedocs.io/en/latest/) using conda.
 ```sh
 conda activate spotdiff
-conda install -c conda-forge uwsgi=2.0.19
+conda install -c conda-forge uwsgi=2.0.20
 ```
 Create a folder for server logging.
 ```sh
