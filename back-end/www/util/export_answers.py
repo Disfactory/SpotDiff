@@ -44,7 +44,7 @@ with open(cvs_file_name, "w", newline="") as csvDataFile:
     # Write header
     csvWriter = csv.writer(csvDataFile, delimiter=",", quotechar='|', quoting=csv.QUOTE_MINIMAL)
     csvWriter.writerow(["Userid", "client_id", "location_id", "factory_id", "answer_id", "land_usage", "expansion", "gold_standard_status", 
-                        "bbox_left_top_lat", "bbox_left_top_lng", "bbox_bottom_right_lat", "bbox_bottom_right_lng", 
+                        "year_old", "year_new", "bbox_left_top_lat", "bbox_left_top_lng", "bbox_bottom_right_lat", "bbox_bottom_right_lng", 
                         "zoom_level", "timestamp"])
     for answer in answers:
         # Write each record in answer table
@@ -52,7 +52,7 @@ with open(cvs_file_name, "w", newline="") as csvDataFile:
         client_id = user_operations.get_user_by_id(answer.user_id).client_id
 
         csvWriter.writerow([answer.user_id, client_id, answer.location_id, factory_id, answer.id, answer.land_usage,answer.expansion, 
-        answer.gold_standard_status, answer.bbox_left_top_lat, answer.bbox_left_top_lng, answer.bbox_bottom_right_lat, 
+        answer.gold_standard_status, answer.year_old, answer.year_new, answer.bbox_left_top_lat, answer.bbox_left_top_lng, answer.bbox_bottom_right_lat, 
         answer.bbox_bottom_right_lng, answer.zoom_level, answer.timestamp])
 
 print("{} records reported.".format(len(answers)))
