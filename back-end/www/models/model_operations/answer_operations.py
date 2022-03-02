@@ -89,11 +89,14 @@ def create_answer(user_id, location_id, year_old, year_new,
     return answer
 
 
-def get_answer_count():
+def get_answer_count(user_id=None):
     """
-    Get total number of answers, excluding gold answers.
+    Get total number of answers.
     """
-    answer_query = Answer.query.filter(Answer.gold_standard_status!=0)
+    if user_id is not None:
+        answer_query = Answer.query.filter(Answer.user_id==user_id)
+    else:        
+        answer_query = Answer.query.filter()
     count = answer_query.count()
     return count
 
@@ -303,8 +306,7 @@ def batch_process_answers(user_id, answers):
     answers : list
         A list of answers provided by the front-end user.
         Each answer should be a dictionary with the following structure:
-            {"timestamp": XXX,
-             "location_id": XXX,
+            {"location_id": XXX,
              "year_new": XXX,
              "year_old": XXX,
              "zoom_level": XXX,
@@ -348,8 +350,15 @@ def batch_process_answers(user_id, answers):
 
     # The first parse is to check the gold standard test result.
     for idx in range(len(answers)):
-        if "location_id" not in answers[idx] or "land_usage" not in answers[idx] or "expansion" not in answers[idx]:
-            raise Exception("The answer format is not not correct.")
+        if "location_id" not in answers[idx]:
+            raise Exception("Missing location_id in answer {}.".format(idx + 1))
+        if "land_usage" not in answers[idx]:
+            raise Exception("Missing land_usage in answer {}.".format(idx + 1))
+        if "expansion" not in answers[idx]:
+            raise Exception("Missing expansion in answer {}.".format(idx + 1))
+        if "source_url_root" not in answers[idx]:
+            raise Exception("Missing source_url_root in answer {}.".format(idx + 1))
+
         # Check every answer to see if gold standard exists
         status = exam_gold_standard(answers[idx]["location_id"], answers[idx]["land_usage"], answers[idx]["expansion"])
         if status == 0:
@@ -374,13 +383,15 @@ def batch_process_answers(user_id, answers):
 
     # Second parse to submit all the answers.
     for idx in range(len(answers)):
-        create_answer(user_id, answers[idx]["location_id"],
-                answers[idx]["year_old"], answers[idx]["year_new"], answers[idx]["source_url_root"],
-                answers[idx]["land_usage"], answers[idx]["expansion"], gold_test_pass_status,
-                answers[idx]["bbox_left_top_lat"], answers[idx]["bbox_left_top_lng"],
-                answers[idx]["bbox_bottom_right_lat"], answers[idx]["bbox_bottom_right_lng"],
-                answers[idx]["zoom_level"])
-
+        try:
+            create_answer(user_id, answers[idx]["location_id"],
+                    answers[idx]["year_old"], answers[idx]["year_new"], answers[idx]["source_url_root"],
+                    answers[idx]["land_usage"], answers[idx]["expansion"], gold_test_pass_status,
+                    answers[idx]["bbox_left_top_lat"], answers[idx]["bbox_left_top_lng"],
+                    answers[idx]["bbox_bottom_right_lat"], answers[idx]["bbox_bottom_right_lng"],
+                    answers[idx]["zoom_level"])
+        except Exception as errmsg:
+            raise Exception(errmsg)
     if gold_test_pass_status == 1:
         return True
     else:
