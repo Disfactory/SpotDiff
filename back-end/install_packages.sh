@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # Flask server
-pip install --upgrade flask==1.1.2
+pip install --upgrade flask==2.1.0
 pip install --upgrade flask-sqlalchemy==2.5.1
 pip install --upgrade flask-migrate==2.7.0
 pip install --upgrade flask-marshmallow==0.14.0
