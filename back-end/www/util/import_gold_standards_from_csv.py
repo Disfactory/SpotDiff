@@ -11,7 +11,7 @@ Output
 The total location numbers after import.
 
 """
-CSV_FILE_NAME = "gold_answers.csv"
+CSV_FILE_NAME = "50_answer_gold_standard_delete.csv"
 CFG_NAME = "config.config.DevelopmentConfig"
 
 import sys
@@ -39,6 +39,7 @@ app.app_context().push()
 
 admin_id = 0
 ans_count = 0
+update_count = 0
 u1 = user_operations.get_user_by_client_id("admin")
 if u1 is None:
     print("Create admin.")
@@ -58,13 +59,19 @@ with open(CSV_FILE_NAME) as csvDataFile:
             break
         location = location_operations.get_location_by_factory_id(row[0])
         if location is not None:
-            print("location_id is: {}".format(row[0]))
-            answer = answer_operations.create_answer(u1.id, location.id, int(row[2]), int(row[1]), "", int(row[3]), int(row[4]), 0)
-            ans_count = ans_count + 1
+            print("location_id is: {}".format(location))
+            gold_answer = answer_operations.get_gold_answer_by_location(location)
+            if gold_answer is not None:
+                answer_operations.set_answer_gold_standard_status(gold_answer, row[5])
+                print("Update gold_standard_status of answer of location {}".format(row[0]))
+                update_count = update_count + 1
+            else:         
+                answer = answer_operations.create_answer(u1.id, location.id, int(row[2]), int(row[1]), "", int(row[3]), int(row[4]), 0)
+                ans_count = ans_count + 1
         else:
             print("Cannot insert {}".format(row[0]))
 
-
+print("Updated {} gold standards.".format(update_count))
 print("Insert {} gold standards. ".format(ans_count))
 total_ans_count = answer_operations.get_gold_answer_count()
 print("Total gold standard cout is : {} ".format(total_ans_count))

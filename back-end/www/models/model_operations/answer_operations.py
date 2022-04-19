@@ -223,6 +223,34 @@ def remove_answer(answer_id):
     db.session.commit()
 
 
+def set_answer_gold_standard_status(answer_id, new_status):
+    """
+    Update an answer.
+
+    Parameters
+    ----------
+    answer_id : int
+        ID of the answer.
+    new_status : int
+        gold standard status of answer 
+
+    Raises
+    ------
+    exception : Exception
+        When new_status is not an integer        
+    """
+    if not isinstance(new_status, int):
+        raise Exception("The new_status shall be an integer")
+
+    answer = get_answer_by_id(answer_id)
+
+    if answer is not None:
+        answer.gold_standard_status = new_status
+        db.session.commit()
+    
+    return answer
+
+
 def exam_gold_standard(location_id, land_usage, expansion):
     """
     Check the quality of the answer in comparison with the gold standard.
