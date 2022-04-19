@@ -341,6 +341,31 @@ class AnswerTest(BasicTest):
         a4 = answer_operations.create_answer(user4.id, l1.id, 2000, 2010, "", 1, 1, PASS_GOLD_TEST,
                 0, 0, 0, 0, 0)
 
+
+    def test_set_answer_gold_standard_status(self):
+        """
+        Create a gold answer then change it to disabled. 
+        Get it again and check if the gold_standard_status updated.
+        """
+        IS_GOLD_STANDARD = 0
+        IS_DISABLED_GOLD_STANDARD = 3
+        BBOX_LEFT_TOP_LAT = 0.1
+        BBOX_LEFT_TOP_LNG = 0.2
+        BBOX_BOTTOM_RIGHT_LAT = 0.3
+        BBOX_BOTTOM_RIGHT_LNG = 0.4
+        user_admin = user_operations.create_user("ADMIN")
+        l1 = location_operations.create_location("AAA")
+
+        A_gold = answer_operations.create_answer(user_admin.id, l1.id, 2000, 2010, "", 0, 1, IS_GOLD_STANDARD,
+                BBOX_LEFT_TOP_LAT, BBOX_LEFT_TOP_LNG, BBOX_BOTTOM_RIGHT_LAT, BBOX_BOTTOM_RIGHT_LNG, 0)            
+        
+        assert(A_gold.gold_standard_status==IS_GOLD_STANDARD)
+        
+        A_updated = answer_operations.set_answer_gold_standard_status(A_gold.id, IS_DISABLED_GOLD_STANDARD)
+
+        assert(A_updated.gold_standard_status==IS_DISABLED_GOLD_STANDARD)
+        
+
     def test_batch_process_answers(self):
         """
         Location #l1 has gold standard.
