@@ -109,6 +109,7 @@ class Answer(db.Model):
         0 meas golden standard provided by admin.
         1 means because the user passes the golden test, the answer may be good quality.
         2 means because the user failed the golden test, the answer may not be good quality.
+        3 means the gold standard is obsoleted by admin.
     bbox_left_top_lat : float
         The latitude of the top-left corner of the bounding box for displaying the focus.
     bbox_left_top_lng : float
