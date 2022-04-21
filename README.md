@@ -8,7 +8,7 @@ English description:
 - The SpotDiff project invites citizens to identify illegal industrial factories on the locations that are supposed to be used as farmland by comparing satellite images before and after May 20th, 2016.
 
 繁體中文介紹：
-- SpotDiff專案希望能讓鄉民比對 2016.5.20 前後衛星雲圖，去抓出農委會五萬筆資料中的疑似工廠位址上的建物是不是新增建物，可以集中火力去檢舉或是可以把台灣疑似工廠的地點掃一遍。
+- SpotDiff專案希望能讓鄉民比對 2016.5.20 前後衛星雲圖，去抓出農委會2017年和2020年五千筆落差資料中的疑似工廠位址上的建物是不是新增建物，可以集中火力去檢舉或是可以把台灣疑似工廠的地點掃一遍。
 
 ### Table of Content
 - [Coding standards](#coding-standards)
