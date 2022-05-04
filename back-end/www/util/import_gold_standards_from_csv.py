@@ -11,14 +11,14 @@ Output
 The total location numbers after import.
 
 """
-CSV_FILE_NAME = "answer_gold_standard_update20220419.csv"
+CSV_FILE_NAME = "20220427_answer_gold_standard.csv"
 #CSV_FILE_NAME = "50_answer_gold_standard.csv"
 
 # For Staging server
-CFG_NAME = "config.config.DevelopmentConfig"
+#CFG_NAME = "config.config.DevelopmentConfig"
 
 # For production server
-#CFG_NAME = "config.config.ProductionConfig" 
+CFG_NAME = "config.config.ProductionConfig" 
 
 import sys
 import os
@@ -73,8 +73,8 @@ with open(CSV_FILE_NAME) as csvDataFile:
 
         # If the gold answer exists, and the new gold_standard_status is specified
         if gold_answer is not None and len(row) >5 and row[5] is not None:
-            answer_operations.set_answer_gold_standard_status(gold_answer.id, int(row[5]))
-            print("Update gold_standard_status of answer of location {}".format(row[0]))
+            answer_operations.set_answer(gold_answer.id, int(row[5]), int(row[3]), int(row[4]))
+            print("Update answer of location {}".format(row[0]))
             update_count = update_count + 1
         elif gold_answer is None:
             # If the gold standard doesn't exist, and the file specify a gold standard, or in old format to create one

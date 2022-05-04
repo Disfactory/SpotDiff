@@ -342,7 +342,7 @@ class AnswerTest(BasicTest):
                 0, 0, 0, 0, 0)
 
 
-    def test_set_answer_gold_standard_status(self):
+    def test_set_answer(self):
         """
         Create a gold answer then change it to disabled. 
         Get it again and check if the gold_standard_status updated.
@@ -361,9 +361,11 @@ class AnswerTest(BasicTest):
         
         assert(A_gold.gold_standard_status==IS_GOLD_STANDARD)
         
-        A_updated = answer_operations.set_answer_gold_standard_status(A_gold.id, IS_DISABLED_GOLD_STANDARD)
+        A_updated = answer_operations.set_answer(A_gold.id, IS_DISABLED_GOLD_STANDARD, 2, 0)
 
         assert(A_updated.gold_standard_status==IS_DISABLED_GOLD_STANDARD)
+        assert(A_updated.land_usage==2)
+        assert(A_updated.expansion==0)
         
 
     def test_batch_process_answers(self):

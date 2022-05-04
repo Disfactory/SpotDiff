@@ -223,7 +223,7 @@ def remove_answer(answer_id):
     db.session.commit()
 
 
-def set_answer_gold_standard_status(answer_id, new_status):
+def set_answer(answer_id, new_status, land_usage, expansion):
     """
     Update an answer.
 
@@ -233,6 +233,14 @@ def set_answer_gold_standard_status(answer_id, new_status):
         ID of the answer.
     new_status : int
         gold standard status of answer 
+    land_usage : int
+        answer's land_usage
+    expansion : int
+        answer's expansion 
+
+    return
+    ------
+    answer
 
     Raises
     ------
@@ -246,6 +254,8 @@ def set_answer_gold_standard_status(answer_id, new_status):
 
     if answer is not None:
         answer.gold_standard_status = new_status
+        answer.land_usage = land_usage
+        answer.expansion = expansion
         db.session.commit()
     
     return answer
