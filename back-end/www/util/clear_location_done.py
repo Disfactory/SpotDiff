@@ -1,5 +1,5 @@
 """
-The script loads the CSV and import the data into the location table.
+The script loads the CSV and clears the don_at of locations in location table.
 
 Config
 ------
@@ -50,14 +50,18 @@ with open(CSV_FILE_NAME) as csvDataFile:
         location = location_operations.get_location_by_factory_id(row[0])
         #print("location is", row[0])
         if location is None:
-            location_operations.create_location(row[0]) 
-            #print("import location ", row[0])
+            #location_operations.create_location(row[0]) 
+            print("Cannot find the location ", row[0])
+            #loc_count = loc_count + 1
+        else:
+            location_operations.set_location_done(location.id, False)
             loc_count = loc_count + 1
+
         
 
-print("Import locations :", loc_count)
-count = location_operations.get_location_count()
-print("Location count is ", count)
+print("reset locations done numbers:", loc_count)
+#count = location_operations.get_location_count()
+#print("Location count is ", count)
 
 db.session.remove()
 db.session.close()
