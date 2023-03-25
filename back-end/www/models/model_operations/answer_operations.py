@@ -223,6 +223,44 @@ def remove_answer(answer_id):
     db.session.commit()
 
 
+def set_answer(answer_id, new_status, land_usage, expansion):
+    """
+    Update an answer.
+
+    Parameters
+    ----------
+    answer_id : int
+        ID of the answer.
+    new_status : int
+        gold standard status of answer 
+    land_usage : int
+        answer's land_usage
+    expansion : int
+        answer's expansion 
+
+    return
+    ------
+    answer
+
+    Raises
+    ------
+    exception : Exception
+        When new_status is not an integer        
+    """
+    if not isinstance(new_status, int):
+        raise Exception("The new_status shall be an integer")
+
+    answer = get_answer_by_id(answer_id)
+
+    if answer is not None:
+        answer.gold_standard_status = new_status
+        answer.land_usage = land_usage
+        answer.expansion = expansion
+        db.session.commit()
+    
+    return answer
+
+
 def exam_gold_standard(location_id, land_usage, expansion):
     """
     Check the quality of the answer in comparison with the gold standard.
@@ -287,11 +325,17 @@ def is_answer_reliable(location_id, land_usage, expansion):
         True : Matches another good answer candiate.
         False : No other good answer candidates exist or match.
     """
+    # Count of answers to mark a location done
+    # currently this is set to 3 to control 4 "reliable" answers to mark the location done
+    ANSWER_COUNTS_TO_MARK_LOC_DONE = 1
+
     # If another user passed the gold standard quality test, and submitted an answer to the same location.
     good_answer_candidates = Answer.query.filter_by(gold_standard_status=1, location_id=location_id, land_usage=land_usage, expansion=expansion).all()
 
     # If the good answer candidate doesn't exist
-    if len(good_answer_candidates) == 0:
+    #if len(good_answer_candidates) == 0:   # 2 are considered as good, need at least 1
+    #if len(good_answer_candidates) < 2:        # 3 are considered as good, need at least 2 
+    if len(good_answer_candidates) < ANSWER_COUNTS_TO_MARK_LOC_DONE: 
         return False
     else:
         return True

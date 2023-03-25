@@ -15,10 +15,13 @@ English description:
 - [Install PostgreSQL (administrator only)](#install-postgresql)
 - [Setup back-end (administrator only)](#setup-back-end)
 - [Setup development environment](#setup-dev-env)
+- [Docker files for setup back-end development environment](#docker-back-end-dev)
 - [Manipulate database](#manipulate-database)
 - [Test cases](#test-cases)
 - [Deploy back-end using uwsgi (administrator only)](#deploy-back-end-using-uwsgi)
 - [API calls](#api-calls)
+- [How to test back-end with FLASK](#back-end-web-test)
+- [Deploy and export data from server](#deploy_export_data)
 
 # <a name="coding-standards"></a>Coding standards
 When contributing code for this repository, please follow the guidelines below:
@@ -395,3 +398,81 @@ $.ajax({
   error: function (xhr) {console.error(xhr)}
 });
 ```
+# <a name="docker-back-end-dev"></a>Docker files for setup back-end development environment
+### Purpose
+- With the sample docker file, back-end developers can prepare the working environment quickly without disturbing existing configurations. It's especially effective for Windows developers to prepare the linux-based back-end developing environment.
+### Steps for creating the working environment with Docker
+- First you need to install Docker.
+- Build the docker container by exec the following command. Below are examples testing on Windows.
+```sh
+docker build -t spotdiff C:/source/SpotDiff/back-end/docker_env/
+```
+- Build a volume for postgresql-data
+```sh
+docker volume create --name postgresql-data
+```
+
+- Start the container we just built and mount the volume
+```sh
+# 5432 is the port that running the container
+docker run -d -p 5432:5432 --name spotdiff --restart always -v postgresql-data:/var/lib/postgresql/data -e POSTGRES_PASSWORD=xxxx -v c:/source/SpotDiff:/code/spotdiff spotdiff
+```
+- enter the shell we just created
+```sh
+docker exec -it spotdiff bash
+$su postgres
+$psql
+```
+
+# <a name="back-end-web-test"></a>How to test back-end with FLASK
+### Purpose
+- For testing with web environment before the client ready, some useful commmands are provided here.
+
+## Steps
+- First you need to make sure the FLASK is running.
+```sh
+FLASK_APP=application.py FLASK_ENV=development flask run
+```
+- Register an user
+```sh
+curl -d '{"client_id":"123"}' -H "Content-Type: application/json" -X POST
+```
+- A response of user_token will be returned. For example:
+```sh
+{
+  "user_token": "XXXX"
+}
+```
+- Then you can copy the above user_token to make queries. For example:
+```sh
+curl -H "Content-Type: application/json" -X GET http://localhost:8080/status?user_token=XXXX
+```
+- An example of the response is like this:
+```sh
+{
+  "individual_done_count": 0,
+  "location_is_done_count": 0,
+  "user_count": 4
+}
+```
+- Test getting locations example:
+```sh
+curl -H "Content-Type: application/json" -X GET http://localhost:8081/location?size=5\&gold_standard_size=1\&user_token=XXXX
+```
+- Test submitting answer example:
+```sh
+curl -d '{"user_token":XXXX","data":[{"location_id":1, "year_new":2007, "year_old":2020,   "source_url_root":"www.test.org", "bbox_left_top_lat":24.0962704615941, "bbox_left_top_lng":"120.462878886353","bbox_bottom_right_lat":24.0962704615941, "bbox_bottom_right_lng":120.462878886353, "land_usage":1, "expansion":1, "zoom_level":0}, {"location_id":20, "year_new":2017, 
+"year_old":2010, "source_url_root":"www.test.org",  "bbox_left_top_lat":24.0962704615941, "bbox_left_top_lng":"120.462878886353","bbox_bottom_right_lat":24.0962704615941, "bbox_bottom_right_lng":120.462878886353, "land_usage":1, "expansion":1, "zoom_level":0}]}' -H "Content-Type: application/json" -X POST http://localhost:8080/answer/
+```
+
+# <a name="deploy_export_data"></a>Deploy and export data from server
+### Import locations to database
+- back-end/www/util/location_import.py
+### Import gold standards from CSV file to database
+- back-end/www/util/import_gold_standards_from_csv.py
+### Export locations from database, including it's done_at information, to a CSV file
+- back-end/www/util/export_locations.py
+### Clear done location flag (done_at) if we want more answers for a location
+- back-end/www/util/clear_location_done.py
+### Export all answers from database to a CSV file
+- back-end/www/util/export_answers.py

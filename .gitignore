@@ -7,3 +7,6 @@
 *.log*
 **/secret/
 *.sql
+id_rsa
+answer_*.csv
+location_*.csv

@@ -72,6 +72,9 @@ class LocationTest(BasicTest):
 
         location_done = location_operations.set_location_done(location.id, True)
         assert(location_done.done_at != None)
+        
+        location_done = location_operations.set_location_done(location.id, False)
+        assert(location_done.done_at == None)
 
     def test_get_locations(self):
         """
