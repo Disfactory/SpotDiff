@@ -1,0 +1,11 @@
+psycopg2
+flask==1.1.2
+flask-sqlalchemy==2.5.1
+flask-migrate==2.7.0
+flask-marshmallow==0.14.0
+marshmallow-sqlalchemy==0.24.2
+flask-cors==3.0.10
+marshmallow_enum==1.5.1
+flask-testing==0.8.1
+psycopg2-binary==2.8.6
+pyjwt==2.1.0
