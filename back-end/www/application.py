@@ -16,7 +16,12 @@ app.register_blueprint(user_controller.bp, url_prefix="/user")
 app.register_blueprint(location_controller.bp, url_prefix="/location")
 app.register_blueprint(status_controller.bp, url_prefix="/status")
 app.register_blueprint(answer_controller.bp, url_prefix="/answer")
-CORS(app, resources={r"/.*": {"origins": ["https://disfactory-spotdiff.netlify.app"]}}) 
+
+# For staging server setting
+#CORS(app, resources={r"/.*": {"origins": ["https://disfactory-spotdiff.netlify.app"]}}) 
+
+# For production server setting
+CORS(app, resources={r"/.*": {"origins": ["https://spot.disfactory.tw"]}}) 
 
 # Set database migration
 migrate = Migrate(app, db)

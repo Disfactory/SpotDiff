@@ -44,7 +44,6 @@ config = StagingConfig() # for staging
 
 
 # Uncomment the following block of code on the production server
-"""
 class ProductionConfig(Config):
     DEBUG = False
     db_url_production_path = Path(join(secret_dir, "db_url_production"))
@@ -53,4 +52,3 @@ class ProductionConfig(Config):
 
 
 config = ProductionConfig() # for production
-"""

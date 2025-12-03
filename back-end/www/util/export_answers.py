@@ -10,7 +10,8 @@ Output
 The total answer numbers after export, and the CSV file. (aswer_YYYY_MM_DD_HH_mm_ss.csv)
 
 """
-CFG_NAME = "config.config.DevelopmentConfig"
+#CFG_NAME = "config.config.DevelopmentConfig"
+CFG_NAME = "config.config.ProductionConfig"
 
 import sys
 import os
